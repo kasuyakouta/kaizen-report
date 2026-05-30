@@ -501,6 +501,19 @@
 
   .report-card:hover { box-shadow: var(--shadow-md); }
 
+  .no-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-light);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-right: 2px;
+  }
+
   .report-card-header {
     padding: 12px 14px;
     display: flex;
@@ -640,6 +653,61 @@
   }
 
   .stat-unit { font-size: 13px; font-weight: 500; color: var(--text2); margin-left: 3px; }
+
+  /* ===== DELETE LIST ===== */
+  .delete-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .delete-row:last-child { border-bottom: none; }
+  .delete-row:hover { background: var(--surface2); }
+
+  .delete-row-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .delete-no {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .delete-customer {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .delete-meta {
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .delete-row-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--red);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--red);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .delete-row-btn:hover { background: var(--red); color: white; }
 
   /* ===== GOAL SECTION ===== */
   .goal-section { margin-bottom: 16px; }
@@ -1329,6 +1397,21 @@
       </div>
       <div style="border-top:1px solid var(--border);margin:16px 0 14px;"></div>
       <button class="settings-save-btn" onclick="saveSettings()">保存する</button>
+      <div style="border-top:1px solid var(--border);margin:16px 0 14px;"></div>
+      <button class="settings-save-btn" style="background:var(--red);" onclick="openDeleteModal()">🗑 報告の削除管理</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DELETE MODAL ===== -->
+<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title">🗑 報告の削除管理</div>
+      <button class="modal-close" onclick="document.getElementById('deleteModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div id="deleteList" style="max-height:60vh;overflow-y:auto;"></div>
     </div>
   </div>
 </div>
@@ -1603,7 +1686,10 @@ async function loadReports() {
   try {
     const res = await fetch(`${gasUrl}?action=getReports`);
     const data = await res.json();
-    allReports = data.reports || [];
+    allReports = (data.reports || []).map((r, i, arr) => ({
+      ...r,
+      no: arr.length - i  // 新しい順に表示するため逆順番号
+    }));
     populateFilterOptions();
     applyFilters();
   } catch (err) {
@@ -1692,6 +1778,7 @@ function renderReportList() {
     return `
       <div class="report-card" onclick="openDetail(${i})">
         <div class="report-card-header">
+          <div class="no-badge">No.${r.no}</div>
           <div class="report-card-meta">
             <div class="report-card-customer">${escHtml(r.customer)}</div>
             <div class="report-card-sub">
@@ -1851,7 +1938,7 @@ function openDetail(idx) {
   const r = filteredReports[idx];
   if (!r) return;
 
-  document.getElementById('modalTitle').textContent = `${r.customer} — ${parseDate(r.datetime).toLocaleDateString('ja-JP')}`;
+  document.getElementById('modalTitle').textContent = `No.${r.no} ${r.customer}`;
 
   // Photos
   let photosHtml = '';
@@ -1867,6 +1954,7 @@ function openDetail(idx) {
   // Info
   const dt = parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
   let infoHtml = `
+    <div class="modal-info-item"><div class="modal-info-label">報告番号</div><div class="modal-info-value" style="font-weight:700;color:var(--accent);">No.${r.no}</div></div>
     <div class="modal-info-item"><div class="modal-info-label">日時</div><div class="modal-info-value">${dt}</div></div>
     <div class="modal-info-item"><div class="modal-info-label">部署</div><div class="modal-info-value">${escHtml(r.unit) || '—'}</div></div>
     <div class="modal-info-item"><div class="modal-info-label">担当者</div><div class="modal-info-value">${escHtml(r.staff)}</div></div>
@@ -1912,7 +2000,7 @@ function printReport() {
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>改善報告書 — ${escHtml(r.customer)} ${dt}</title>
+<title>改善報告書 No.${r.no} — ${escHtml(r.customer)} ${dt}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -2120,6 +2208,7 @@ function printReport() {
   </div>
 
   <table class="info-table">
+    <tr><th>報告番号</th><td><strong style="color:#1A6FE8;">No.${r.no}</strong></td></tr>
     <tr><th>顧客名</th><td>${escHtml(r.customer)}</td></tr>
     <tr><th>日付</th><td>${dt}</td></tr>
     <tr><th>部署</th><td>${escHtml(r.unit) || '—'}</td></tr>
@@ -2150,6 +2239,69 @@ function printReport() {
   const url  = URL.createObjectURL(blob);
   const win  = window.open(url, '_blank');
   if (!win) showToast('ポップアップがブロックされました。許可してください', 'error');
+}
+
+// ===== DELETE MODAL =====
+async function openDeleteModal() {
+  document.getElementById('settingsModal').classList.remove('open');
+  document.getElementById('deleteModal').classList.add('open');
+  await renderDeleteList();
+}
+
+async function renderDeleteList() {
+  const container = document.getElementById('deleteList');
+  container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);">読み込み中...</div>';
+
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  if (!gasUrl) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);">GAS URLが未設定です</div>'; return; }
+
+  try {
+    const res  = await fetch(`${gasUrl}?action=getReports`);
+    const data = await res.json();
+    const reports = (data.reports || []).map((r, i, arr) => ({ ...r, no: arr.length - i }));
+
+    if (reports.length === 0) {
+      container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);">報告データがありません</div>';
+      return;
+    }
+
+    container.innerHTML = reports.map(r => {
+      const dt = r.datetime ? parseDate(r.datetime).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) : '—';
+      return `
+        <div class="delete-row" id="drow-${escHtml(r.id)}">
+          <div class="delete-row-info">
+            <span class="delete-no">No.${r.no}</span>
+            <span class="delete-customer">${escHtml(r.customer)}</span>
+            <span class="delete-meta">${escHtml(r.unit || '')} ${escHtml(r.staff)} ${dt}</span>
+          </div>
+          <button class="delete-row-btn" onclick="confirmDelete('${escHtml(r.id)}', 'No.${r.no} ${escHtml(r.customer)}')">削除</button>
+        </div>
+      `;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--red);">読み込み失敗: ${e.message}</div>`;
+  }
+}
+
+async function confirmDelete(id, label) {
+  if (!confirm(`「${label}」を削除しますか？\nこの操作は取り消せません。`)) return;
+
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  try {
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'deleteReport', id }),
+    });
+    const result = await res.json();
+    if (result.status !== 'ok') throw new Error(result.message);
+    showToast('削除しました', 'success');
+    // 一覧を再描画してナンバリング更新
+    await renderDeleteList();
+    await loadReports();
+  } catch(e) {
+    showToast('削除失敗: ' + e.message, 'error');
+  }
 }
 
 // ===== SETTINGS MODAL =====
