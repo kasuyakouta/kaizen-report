@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>改善報告アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F6F8;
+    --surface: #FFFFFF;
+    --surface2: #F0F2F5;
+    --border: #E2E5EA;
+    --accent: #1A6FE8;
+    --accent-light: #EAF1FD;
+    --accent-dark: #1458C0;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --yellow: #D97706;
+    --yellow-light: #FEF3C7;
+    --text: #1A1D23;
+    --text2: #5A6070;
+    --text3: #9AA0AD;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  html, body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== LAYOUT ===== */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .app-header .logo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .app-header .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px;
+  }
+
+  .nav-tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 8px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .nav-tab:hover:not(.active) { color: var(--text); }
+
+  .tab-icon { font-size: 15px; }
+
+  .main-content {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== FORM ===== */
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .form-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-group:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  label .required {
+    color: var(--red);
+    margin-left: 3px;
+    font-size: 11px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(26,111,232,0.12);
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239AA0AD' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ===== REDUCTION TOGGLE ===== */
+  .reduction-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .toggle-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* チェックボックス式 削減効果 */
+  .reduction-item {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .reduction-item:last-child { margin-bottom: 0; }
+  .reduction-item.active { border-color: var(--accent); }
+
+  .reduction-check-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--surface);
+    transition: background 0.15s;
+  }
+  .reduction-check-row:hover { background: var(--surface2); }
+  .reduction-item.active .reduction-check-row { background: var(--accent-light); }
+
+  .reduction-checkbox {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    background: var(--surface);
+    font-size: 13px;
+    color: transparent;
+  }
+  .reduction-item.active .reduction-checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .reduction-check-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .reduction-check-hint {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 400;
+  }
+
+  .reduction-input-wrap {
+    padding: 0 14px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease, padding 0.25s ease;
+    background: var(--surface);
+  }
+  .reduction-item.active .reduction-input-wrap {
+    max-height: 80px;
+    padding: 0 14px 14px;
+  }
+
+  .unit-label {
+    display: flex; align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .unit-label input {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+  }
+
+  .unit-label input:focus { box-shadow: none; }
+
+  .unit-suffix {
+    padding: 0 12px;
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 1px solid var(--border);
+    height: 40px;
+    display: flex; align-items: center;
+    white-space: nowrap;
+  }
+
+  /* ===== PHOTO UPLOAD ===== */
+  .photo-grid { display: flex; flex-direction: column; gap: 16px; }
+
+  .photo-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .photo-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+  .photo-upload-area.has-image { border-style: solid; border-color: var(--border); padding: 0; overflow: hidden; }
+
+  .photo-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .photo-label.before { color: var(--yellow); }
+  .photo-label.after { color: var(--green); }
+
+  .photo-upload-area .upload-icon { font-size: 36px; }
+  .photo-upload-area .upload-text { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+  .photo-upload-area img {
+    width: 100%; height: 220px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .photo-badge {
+    position: absolute;
+    top: 6px; left: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.9);
+  }
+
+  .photo-badge.before { color: var(--yellow); }
+  .photo-badge.after { color: var(--green); }
+
+  .photo-remove {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 22px; height: 22px;
+    background: rgba(0,0,0,0.5);
+    border: none; border-radius: 50%;
+    color: white; font-size: 13px;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    line-height: 1;
+  }
+
+  .photo-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .photo-btn {
+    flex: 1;
+    padding: 11px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+
+  .photo-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  /* ===== SUBMIT BUTTON ===== */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .submit-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 9999;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+
+  /* ===== LIST PAGE ===== */
+  .list-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .filter-select {
+    padding: 8px 28px 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text2);
+    background: var(--surface);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath fill='%239AA0AD' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filter-select:focus { outline: none; border-color: var(--accent); }
+
+  .report-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+    cursor: pointer;
+  }
+
+  .report-card:hover { box-shadow: var(--shadow-md); }
+
+  .report-card-header {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .report-card-meta { flex: 1; min-width: 0; }
+
+  .report-card-customer {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .report-card-sub {
+    font-size: 11px;
+    color: var(--text3);
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge-time { background: var(--yellow-light); color: var(--yellow); }
+  .badge-cost { background: var(--green-light); color: var(--green); }
+  .badge-both { background: var(--accent-light); color: var(--accent); }
+
+  .report-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 120px;
+  }
+
+  .report-photo-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .report-photo-wrap + .report-photo-wrap {
+    border-left: 2px solid white;
+  }
+
+  .report-photo-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  .report-photo-badge {
+    position: absolute;
+    bottom: 6px; left: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.9);
+  }
+
+  .report-photo-badge.before { color: var(--yellow); }
+  .report-photo-badge.after { color: var(--green); }
+
+  .report-no-photo {
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text3); font-size: 24px;
+  }
+
+  .report-card-body {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    border-top: 1px solid var(--border);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+  }
+
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .list-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  /* ===== SUMMARY PAGE ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-card.full { grid-column: 1 / -1; }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .stat-unit { font-size: 13px; font-weight: 500; color: var(--text2); margin-left: 3px; }
+
+  /* ===== GOAL SECTION ===== */
+  .goal-section { margin-bottom: 16px; }
+
+  .goal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .goal-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .goal-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .goal-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .goal-badge.achieved { background: var(--green-light); color: var(--green); }
+  .goal-badge.progress { background: var(--yellow-light); color: var(--yellow); }
+  .goal-badge.low      { background: var(--red-light);    color: var(--red);    }
+
+  .goal-progress-bar-wrap {
+    background: var(--surface2);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .goal-progress-bar {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+    min-width: 4px;
+  }
+
+  .goal-bar-green  { background: var(--green); }
+  .goal-bar-yellow { background: var(--yellow); }
+  .goal-bar-red    { background: var(--red); }
+
+  .goal-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .goal-meta strong { color: var(--text); }
+
+  .goal-annual-card {
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .goal-annual-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .goal-annual-title { font-size: 13px; font-weight: 700; opacity: 0.9; }
+
+  .goal-annual-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.25);
+    color: white;
+  }
+
+  .goal-annual-bar-wrap {
+    background: rgba(255,255,255,0.25);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .goal-annual-bar {
+    height: 100%;
+    border-radius: 99px;
+    background: white;
+    transition: width 0.6s ease;
+    min-width: 4px;
+  }
+
+  .goal-annual-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    opacity: 0.85;
+  }
+
+  .goal-annual-meta strong { opacity: 1; }
+
+  .summary-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+
+  .summary-table-title {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  td {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .td-num { text-align: right; font-weight: 600; color: var(--accent); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    width: 30px; height: 30px;
+    border: none; background: var(--surface2);
+    border-radius: 6px; cursor: pointer;
+    font-size: 16px; color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--border); }
+
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  .print-btn {
+    width: 100%;
+    padding: 11px;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .print-btn:hover { background: #2d3240; }
+
+  .modal-body { padding: 20px; }
+
+  .modal-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .modal-photo-wrap { position: relative; border-radius: var(--radius-sm); overflow: hidden; }
+  .modal-photo-wrap img { width: 100%; height: 160px; object-fit: cover; display: block; }
+
+  .modal-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .modal-info-item { }
+  .modal-info-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .modal-info-value { font-size: 14px; color: var(--text); }
+
+  .modal-content-text {
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* ===== LOADING SPINNER ===== */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .modal-info-grid { grid-template-columns: 1fr; }
+    .modal-photos { grid-template-columns: 1fr 1fr; }
+    .modal-photo-wrap img { height: 120px; }
+  }
+
+  /* ===== GAS CONFIG NOTICE ===== */
+  .config-banner {
+    background: var(--yellow-light);
+    border: 1px solid #F59E0B;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--yellow);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .config-banner.hidden { display: none; }
+  .config-banner strong { display: block; margin-bottom: 2px; font-size: 13px; }
+
+  .settings-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: inherit;
+    padding: 0;
+  }
+
+  /* Settings modal fields */
+  .settings-input-wrap { margin-bottom: 12px; }
+  .settings-input-wrap label { font-size: 13px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 6px; }
+  .settings-input-wrap input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; }
+  .settings-input-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,111,232,0.12); }
+  .settings-save-btn {
+    width: 100%; padding: 11px; background: var(--accent); color: white; border: none;
+    border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: background 0.15s; margin-top: 4px;
+  }
+  .settings-save-btn:hover { background: var(--accent-dark); }
+
+  .period-filter {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .period-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .period-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .refresh-btn {
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+    margin-left: auto;
+  }
+
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .list-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+
+  .list-count {
+    font-size: 12px;
+    color: var(--text3);
+    background: var(--surface2);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">♻</div>
+    改善報告アプリ
+  </div>
+  <button class="settings-link" onclick="openSettings()">⚙ 設定</button>
+</header>
+
+<!-- Nav Tabs -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('form', this)">
+    <span class="tab-icon">✏️</span> 報告入力
+  </button>
+  <button class="nav-tab" onclick="showPage('list', this)">
+    <span class="tab-icon">📋</span> 一覧
+  </button>
+  <button class="nav-tab" onclick="showPage('summary', this)">
+    <span class="tab-icon">📊</span> サマリー
+  </button>
+</nav>
+
+<main class="main-content">
+
+  <!-- ===== FORM PAGE ===== -->
+  <div id="page-form" class="page active">
+
+    <div id="configBanner" class="config-banner">
+      <span>⚠️</span>
+      <div>
+        <strong>初期設定が必要です</strong>
+        GAS WebアプリのURLを設定してください。
+        <button class="settings-link" onclick="openSettings()">設定を開く →</button>
+      </div>
+    </div>
+
+    <!-- 基本情報 -->
+    <div class="form-card">
+      <div class="form-card-title">基本情報</div>
+
+      <div class="form-group">
+        <label>日時 <span class="required">*</span></label>
+        <input type="date" id="reportDatetime">
+      </div>
+
+      <div class="form-group">
+        <label>顧客名 <span class="required">*</span></label>
+        <input type="text" id="customerName" placeholder="例：山田商事">
+      </div>
+
+      <div class="form-group">
+        <label>部署名 <span class="required">*</span></label>
+        <select id="unitName">
+          <option value="">選択してください</option>
+          <option value="ユニット2">ユニット2</option>
+          <option value="ユニット3">ユニット3</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>改善担当者 <span class="required">*</span></label>
+        <select id="staffName">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 改善内容 -->
+    <div class="form-card">
+      <div class="form-card-title">改善内容</div>
+
+      <div class="form-group">
+        <label>改善内容の説明</label>
+        <textarea id="improvement" placeholder="どのような改善を行ったか記述してください"></textarea>
+      </div>
+    </div>
+
+    <!-- 写真 -->
+    <div class="form-card">
+      <div class="form-card-title">ビフォーアフター写真</div>
+      <div class="photo-grid">
+
+        <!-- Before -->
+        <div>
+          <div id="beforeDropzone" class="photo-upload-area" onclick="triggerPhotoInput('before', 'file')">
+            <div class="upload-icon">📷</div>
+            <div class="photo-label before">BEFORE</div>
+            <div class="upload-text">タップして選択</div>
+          </div>
+          <div class="photo-actions">
+            <button class="photo-btn" onclick="triggerPhotoInput('before', 'camera')">📸 カメラ</button>
+            <button class="photo-btn" onclick="triggerPhotoInput('before', 'file')">🖼 ファイル</button>
+          </div>
+          <input type="file" id="beforeFileInput" accept="image/*" style="display:none" onchange="handlePhoto(this, 'before')">
+          <input type="file" id="beforeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this, 'before')">
+        </div>
+
+        <!-- After -->
+        <div>
+          <div id="afterDropzone" class="photo-upload-area" onclick="triggerPhotoInput('after', 'file')">
+            <div class="upload-icon">📷</div>
+            <div class="photo-label after">AFTER</div>
+            <div class="upload-text">タップして選択</div>
+          </div>
+          <div class="photo-actions">
+            <button class="photo-btn" onclick="triggerPhotoInput('after', 'camera')">📸 カメラ</button>
+            <button class="photo-btn" onclick="triggerPhotoInput('after', 'file')">🖼 ファイル</button>
+          </div>
+          <input type="file" id="afterFileInput" accept="image/*" style="display:none" onchange="handlePhoto(this, 'after')">
+          <input type="file" id="afterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this, 'after')">
+        </div>
+      </div>
+    </div>
+
+    <!-- 削減効果 -->
+    <div class="form-card">
+      <div class="form-card-title">削減効果 <span style="font-weight:400;color:var(--text3);font-size:11px;text-transform:none;letter-spacing:0;">（任意・該当するものにチェック）</span></div>
+
+      <!-- 削減時間 -->
+      <div class="reduction-item" id="timeItem">
+        <div class="reduction-check-row" onclick="toggleReduction('time')">
+          <div class="reduction-checkbox" id="timeCheck">✓</div>
+          <span class="reduction-check-label">⏱ 削減時間あり</span>
+          <span class="reduction-check-hint">時間/月</span>
+        </div>
+        <div class="reduction-input-wrap">
+          <div class="unit-label" style="margin-top:0;">
+            <input type="number" id="reductionTime" placeholder="例：2" min="0" step="0.5">
+            <span class="unit-suffix">時間/月</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 削減費用 -->
+      <div class="reduction-item" id="costItem">
+        <div class="reduction-check-row" onclick="toggleReduction('cost')">
+          <div class="reduction-checkbox" id="costCheck">✓</div>
+          <span class="reduction-check-label">💰 削減費用あり</span>
+          <span class="reduction-check-hint">円/月</span>
+        </div>
+        <div class="reduction-input-wrap">
+          <div class="unit-label" style="margin-top:0;">
+            <input type="number" id="reductionCost" placeholder="例：5000" min="0" step="100">
+            <span class="unit-suffix">円/月</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitReport()">
+      <span id="submitText">📤 報告を送信</span>
+    </button>
+  </div>
+
+  <!-- ===== LIST PAGE ===== -->
+  <div id="page-list" class="page">
+
+    <div class="list-header">
+      <div class="period-filter" style="margin-bottom:0; flex:1;">
+        <button class="period-btn active" onclick="setPeriod('all', this)">全件</button>
+        <button class="period-btn" onclick="setPeriod('month', this)">今月</button>
+        <button class="period-btn" onclick="setPeriod('week', this)">今週</button>
+      </div>
+      <button class="refresh-btn" onclick="loadReports()">🔄 更新</button>
+    </div>
+
+    <div class="list-filters">
+      <select class="filter-select" id="filterUnit" onchange="applyFilters()">
+        <option value="">部署: 全件</option>
+        <option value="ユニット2">ユニット2</option>
+        <option value="ユニット3">ユニット3</option>
+      </select>
+      <select class="filter-select" id="filterStaff" onchange="applyFilters()">
+        <option value="">担当者: 全員</option>
+      </select>
+      <select class="filter-select" id="filterCustomer" onchange="applyFilters()">
+        <option value="">顧客: 全件</option>
+      </select>
+    </div>
+
+    <div style="display:flex; align-items:center; margin-bottom:12px;">
+      <span id="listCount" class="list-count">0 件</span>
+    </div>
+
+    <div id="reportList">
+      <div class="list-loading">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- ===== SUMMARY PAGE ===== -->
+  <div id="page-summary" class="page">
+
+    <div class="period-filter">
+      <button class="period-btn active" onclick="setSummaryPeriod('all', this)">全期間</button>
+      <button class="period-btn" onclick="setSummaryPeriod('month', this)">今月</button>
+      <button class="period-btn" onclick="setSummaryPeriod('year', this)">今年</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">改善件数</div>
+        <div class="stat-value" id="statCount">—<span class="stat-unit">件</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">削減時間 合計</div>
+        <div class="stat-value" id="statTime">—<span class="stat-unit">h</span></div>
+      </div>
+      <div class="stat-card full">
+        <div class="stat-label">削減費用 合計</div>
+        <div class="stat-value" id="statCost">—<span class="stat-unit">円</span></div>
+      </div>
+    </div>
+
+    <!-- 目標達成率 -->
+    <div class="goal-section" id="goalSection"></div>
+
+    <div class="summary-table-wrap">
+      <div class="summary-table-title">部署別 集計</div>
+      <table>
+        <thead>
+          <tr>
+            <th>部署</th>
+            <th>件数</th>
+            <th>削減時間</th>
+            <th>削減費用</th>
+          </tr>
+        </thead>
+        <tbody id="unitTable">
+          <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px;">データなし</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== DETAIL MODAL ===== -->
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">改善報告詳細</div>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-photos" id="modalPhotos"></div>
+      <div class="modal-info-grid" id="modalInfo"></div>
+      <div id="modalContent"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="print-btn" onclick="printReport()">🖨️ 印刷・PDF保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙ アプリ設定</div>
+      <button class="modal-close" onclick="document.getElementById('settingsModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-input-wrap">
+        <label>GAS WebアプリURL</label>
+        <input type="text" id="settingsGasUrl" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <div class="settings-input-wrap">
+        <label>担当者リスト（改行区切り）</label>
+        <textarea id="settingsStaffList" style="width:100%;height:120px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;" placeholder="田中 太郎&#10;佐藤 花子&#10;鈴木 一郎"></textarea>
+      </div>
+      <button class="settings-save-btn" onclick="saveSettings()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const STORAGE_KEY_GAS_URL = 'kaizen_gas_url';
+const STORAGE_KEY_STAFF = 'kaizen_staff';
+
+let allReports = [];
+let filteredReports = [];
+let currentPeriod = 'all';
+let currentSummaryPeriod = 'all';
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  setDefaultDatetime();
+  loadSettings();
+  checkConfig();
+});
+
+function setDefaultDatetime() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  document.getElementById('reportDatetime').value = local.toISOString().slice(0, 10);
+}
+
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw3x_oa9bvka9SlpuKDZ5U1YU7xKVMLY1u6QLpLv1NXXIalIYfR1p0Dxappb3E6WvdK/exec';
+
+function loadSettings() {
+  // GAS URLが未設定の場合はデフォルト値を自動セット
+  if (!localStorage.getItem(STORAGE_KEY_GAS_URL)) {
+    localStorage.setItem(STORAGE_KEY_GAS_URL, DEFAULT_GAS_URL);
+  }
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  const staffRaw = localStorage.getItem(STORAGE_KEY_STAFF) || '';
+  const staffList = staffRaw ? staffRaw.split('\n').filter(s => s.trim()) : [];
+
+  document.getElementById('settingsGasUrl').value = gasUrl;
+  document.getElementById('settingsStaffList').value = staffRaw;
+
+  // Populate dropdowns
+  populateStaffDropdown(staffList);
+}
+
+function saveSettings() {
+  const gasUrl = document.getElementById('settingsGasUrl').value.trim();
+  const staffRaw = document.getElementById('settingsStaffList').value.trim();
+  localStorage.setItem(STORAGE_KEY_GAS_URL, gasUrl);
+  localStorage.setItem(STORAGE_KEY_STAFF, staffRaw);
+  loadSettings();
+  checkConfig();
+  document.getElementById('settingsModal').classList.remove('open');
+  showToast('設定を保存しました', 'success');
+}
+
+function checkConfig() {
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  const banner = document.getElementById('configBanner');
+  if (gasUrl) {
+    banner.classList.add('hidden');
+  } else {
+    banner.classList.remove('hidden');
+  }
+}
+
+function populateStaffDropdown(staffList) {
+  const selects = [
+    document.getElementById('staffName'),
+    document.getElementById('filterStaff')
+  ];
+
+  selects.forEach((sel, i) => {
+    const currentVal = sel.value;
+    sel.innerHTML = i === 0
+      ? '<option value="">選択してください</option>'
+      : '<option value="">担当者: 全員</option>';
+    staffList.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.trim();
+      opt.textContent = s.trim();
+      sel.appendChild(opt);
+    });
+    if (currentVal) sel.value = currentVal;
+  });
+}
+
+// ===== PAGE NAV =====
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  btn.classList.add('active');
+
+  if (page === 'list') loadReports();
+  if (page === 'summary') loadSummary();
+}
+
+// ===== PHOTO HANDLING =====
+const photoData = { before: null, after: null };
+
+function triggerPhotoInput(type, mode) {
+  const id = mode === 'camera' ? `${type}CameraInput` : `${type}FileInput`;
+  document.getElementById(id).click();
+}
+
+function handlePhoto(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoData[type] = e.target.result; // base64
+    const dz = document.getElementById(`${type}Dropzone`);
+    dz.classList.add('has-image');
+    dz.innerHTML = `
+      <img src="${e.target.result}" alt="${type}">
+      <span class="photo-badge ${type}">${type.toUpperCase()}</span>
+      <button class="photo-remove" onclick="removePhoto('${type}', event)">✕</button>
+    `;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function removePhoto(type, e) {
+  e.stopPropagation();
+  photoData[type] = null;
+  const dz = document.getElementById(`${type}Dropzone`);
+  dz.classList.remove('has-image');
+  const label = type === 'before' ? '<div class="photo-label before">BEFORE</div>' : '<div class="photo-label after">AFTER</div>';
+  dz.innerHTML = `<div class="upload-icon">📷</div>${label}<div class="upload-text">タップして選択</div>`;
+  dz.onclick = () => triggerPhotoInput(type, 'file');
+}
+
+// ===== REDUCTION TOGGLE =====
+function toggleReduction(type) {
+  const item  = document.getElementById(type === 'time' ? 'timeItem' : 'costItem');
+  const input = document.getElementById(type === 'time' ? 'reductionTime' : 'reductionCost');
+  const isActive = item.classList.toggle('active');
+  if (!isActive) input.value = '';
+  else setTimeout(() => input.focus(), 250);
+}
+
+// ===== SUBMIT =====
+async function submitReport() {
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  if (!gasUrl) { showToast('GAS URLを設定してください', 'error'); openSettings(); return; }
+
+  const datetime = document.getElementById('reportDatetime').value;
+  const customer = document.getElementById('customerName').value.trim();
+  const unit = document.getElementById('unitName').value;
+  const staff = document.getElementById('staffName').value;
+  const improvement = document.getElementById('improvement').value.trim();
+  const reductionTime = document.getElementById('reductionTime').value;
+  const reductionCost = document.getElementById('reductionCost').value;
+
+  if (!datetime) { showToast('日時を入力してください', 'error'); return; }
+  if (!customer) { showToast('顧客名を入力してください', 'error'); return; }
+  if (!unit) { showToast('部署名を選択してください', 'error'); return; }
+  if (!staff) { showToast('担当者を選択してください', 'error'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  const txt = document.getElementById('submitText');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> 送信中...';
+
+  const payload = {
+    action: 'addReport',
+    datetime,
+    customer,
+    unit,
+    staff,
+    improvement,
+    reductionTime: reductionTime || '',
+    reductionCost: reductionCost || '',
+    beforePhoto: photoData.before || '',
+    afterPhoto: photoData.after || '',
+  };
+
+  try {
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+
+    if (result.status === 'ok') {
+      showToast('報告を送信しました！', 'success');
+      resetForm();
+    } else {
+      throw new Error(result.message || '送信エラー');
+    }
+  } catch (err) {
+    showToast('送信に失敗しました: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    txt.innerHTML = '📤 報告を送信';
+  }
+}
+
+function resetForm() {
+  setDefaultDatetime();
+  document.getElementById('customerName').value = '';
+  document.getElementById('unitName').value = '';
+  document.getElementById('staffName').value = '';
+  document.getElementById('improvement').value = '';
+  document.getElementById('reductionTime').value = '';
+  document.getElementById('reductionCost').value = '';
+  document.getElementById('timeItem').classList.remove('active');
+  document.getElementById('costItem').classList.remove('active');
+  removePhoto('before', { stopPropagation: () => {} });
+  removePhoto('after', { stopPropagation: () => {} });
+}
+
+// ===== LOAD REPORTS =====
+async function loadReports() {
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  if (!gasUrl) {
+    document.getElementById('reportList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚙️</div><p>GAS URLを設定してください</p></div>';
+    return;
+  }
+
+  document.getElementById('reportList').innerHTML = '<div class="list-loading">読み込み中...</div>';
+
+  try {
+    const res = await fetch(`${gasUrl}?action=getReports`);
+    const data = await res.json();
+    allReports = data.reports || [];
+    populateFilterOptions();
+    applyFilters();
+  } catch (err) {
+    document.getElementById('reportList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>データの読み込みに失敗しました</p></div>';
+  }
+}
+
+function populateFilterOptions() {
+  const staffSet = [...new Set(allReports.map(r => r.staff).filter(Boolean))];
+  const customerSet = [...new Set(allReports.map(r => r.customer).filter(Boolean))];
+
+  const filterStaff = document.getElementById('filterStaff');
+  const filterCustomer = document.getElementById('filterCustomer');
+  const currentStaff = filterStaff.value;
+  const currentCustomer = filterCustomer.value;
+
+  filterStaff.innerHTML = '<option value="">担当者: 全員</option>';
+  staffSet.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; filterStaff.appendChild(o); });
+
+  filterCustomer.innerHTML = '<option value="">顧客: 全件</option>';
+  customerSet.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; filterCustomer.appendChild(o); });
+
+  filterStaff.value = currentStaff;
+  filterCustomer.value = currentCustomer;
+}
+
+function setPeriod(p, btn) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => {
+    if (b.parentElement.id !== 'summaryPeriodBtns') b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const unit = document.getElementById('filterUnit').value;
+  const staff = document.getElementById('filterStaff').value;
+  const customer = document.getElementById('filterCustomer').value;
+  const now = new Date();
+
+  filteredReports = allReports.filter(r => {
+    if (unit && r.unit !== unit) return false;
+    if (staff && r.staff !== staff) return false;
+    if (customer && r.customer !== customer) return false;
+    if (currentPeriod === 'month') {
+      const d = parseDate(r.datetime);
+      if (d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) return false;
+    }
+    if (currentPeriod === 'week') {
+      const d = parseDate(r.datetime);
+      const diff = now - d;
+      if (diff > 7 * 24 * 3600 * 1000) return false;
+    }
+    return true;
+  });
+
+  renderReportList();
+}
+
+function renderReportList() {
+  const container = document.getElementById('reportList');
+  document.getElementById('listCount').textContent = `${filteredReports.length} 件`;
+
+  if (filteredReports.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>報告が見つかりません</p></div>';
+    return;
+  }
+
+  container.innerHTML = filteredReports.map((r, i) => {
+    const dt = r.datetime ? parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' }) : '';
+    const hasBoth = r.reductionTime && r.reductionCost;
+    const badgeClass = hasBoth ? 'badge-both' : (r.reductionTime ? 'badge-time' : (r.reductionCost ? 'badge-cost' : ''));
+    const badgeText = hasBoth
+      ? `⏱ ${r.reductionTime}h ／ 💰 ${Number(r.reductionCost).toLocaleString()}円`
+      : r.reductionTime ? `⏱ ${r.reductionTime}h/月`
+      : r.reductionCost ? `💰 ${Number(r.reductionCost).toLocaleString()}円/月` : '';
+
+    const beforeHtml = r.beforePhoto
+      ? `<div class="report-photo-wrap"><img src="${r.beforePhoto}" loading="lazy"><div class="report-photo-badge before">Before</div></div>`
+      : `<div class="report-photo-wrap report-no-photo">📷</div>`;
+    const afterHtml = r.afterPhoto
+      ? `<div class="report-photo-wrap"><img src="${r.afterPhoto}" loading="lazy"><div class="report-photo-badge after">After</div></div>`
+      : `<div class="report-photo-wrap report-no-photo">📷</div>`;
+
+    return `
+      <div class="report-card" onclick="openDetail(${i})">
+        <div class="report-card-header">
+          <div class="report-card-meta">
+            <div class="report-card-customer">${escHtml(r.customer)}</div>
+            <div class="report-card-sub">
+              ${r.unit ? `<span style="color:var(--accent);font-weight:600;">${escHtml(r.unit)}</span>` : ''}
+              <span>${escHtml(r.staff)}</span>
+              <span>${dt}</span>
+            </div>
+          </div>
+          ${badgeText ? `<span class="badge ${badgeClass}">${badgeText}</span>` : ''}
+        </div>
+        ${(r.beforePhoto || r.afterPhoto) ? `<div class="report-photos">${beforeHtml}${afterHtml}</div>` : ''}
+        ${r.improvement ? `<div class="report-card-body">${escHtml(r.improvement.slice(0, 80))}${r.improvement.length > 80 ? '…' : ''}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== SUMMARY =====
+async function loadSummary() {
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  if (!gasUrl) return;
+
+  if (allReports.length === 0) {
+    try {
+      const res = await fetch(`${gasUrl}?action=getReports`);
+      const data = await res.json();
+      allReports = data.reports || [];
+    } catch (e) { return; }
+  }
+  renderSummary();
+}
+
+function setSummaryPeriod(p, btn) {
+  currentSummaryPeriod = p;
+  document.querySelectorAll('.period-filter .period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSummary();
+}
+
+function renderSummary() {
+  const now = new Date();
+  const filtered = allReports.filter(r => {
+    if (currentSummaryPeriod === 'month') {
+      const d = parseDate(r.datetime);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }
+    if (currentSummaryPeriod === 'year') {
+      return parseDate(r.datetime).getFullYear() === now.getFullYear();
+    }
+    return true;
+  });
+
+  const totalTime = filtered.reduce((s, r) => s + (parseFloat(r.reductionTime) || 0), 0);
+  const totalCost = filtered.reduce((s, r) => s + (parseInt(r.reductionCost) || 0), 0);
+
+  document.getElementById('statCount').innerHTML = `${filtered.length}<span class="stat-unit">件</span>`;
+  document.getElementById('statTime').innerHTML = `${totalTime.toFixed(1)}<span class="stat-unit">h</span>`;
+  document.getElementById('statCost').innerHTML = `${totalCost.toLocaleString()}<span class="stat-unit">円</span>`;
+
+  // Unit table
+  const unitMap = {};
+  filtered.forEach(r => {
+    const key = r.unit || '未設定';
+    if (!unitMap[key]) unitMap[key] = { count: 0, time: 0, cost: 0 };
+    unitMap[key].count++;
+    unitMap[key].time += parseFloat(r.reductionTime) || 0;
+    unitMap[key].cost += parseInt(r.reductionCost) || 0;
+  });
+
+  document.getElementById('unitTable').innerHTML = Object.entries(unitMap).length === 0
+    ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px;">データなし</td></tr>'
+    : Object.entries(unitMap).sort((a, b) => b[1].count - a[1].count).map(([name, d]) =>
+        `<tr><td><strong>${escHtml(name)}</strong></td><td class="td-num">${d.count}</td><td class="td-num">${d.time.toFixed(1)}h</td><td class="td-num">${d.cost.toLocaleString()}円</td></tr>`
+      ).join('');
+
+  renderGoals(filtered);
+}
+
+function renderGoals(filtered) {
+  const now = new Date();
+  const UNITS = ['ユニット2', 'ユニット3'];
+
+  // 目標値
+  const MONTHLY_GOAL = 4;       // 各部署 月4件
+  const ANNUAL_GOAL  = 100;     // 全体 年間100件
+
+  // 期間ラベル・目標件数を期間に応じて算出
+  let periodLabel, monthCount;
+  if (currentSummaryPeriod === 'month') {
+    periodLabel = '今月';
+    monthCount = 1;
+  } else if (currentSummaryPeriod === 'year') {
+    periodLabel = '今年';
+    monthCount = 12;
+  } else {
+    periodLabel = '全期間';
+    monthCount = null; // 全期間は月目標非表示
+  }
+
+  // 年間全体達成率カード（今年 or 全期間で表示）
+  const annualCount = currentSummaryPeriod === 'all'
+    ? allReports.length
+    : filtered.length;
+  const annualTarget = currentSummaryPeriod === 'month' ? MONTHLY_GOAL * 2 : ANNUAL_GOAL;
+  const annualRate = Math.min(Math.round(annualCount / annualTarget * 100), 100);
+  const annualLabel = currentSummaryPeriod === 'month' ? '月間目標（全体）' : '年間目標（全体）';
+  const annualGoalNum = currentSummaryPeriod === 'month' ? MONTHLY_GOAL * 2 : ANNUAL_GOAL;
+
+  let html = `
+    <div class="goal-annual-card">
+      <div class="goal-annual-header">
+        <span class="goal-annual-title">🎯 ${annualLabel}：${annualGoalNum}件</span>
+        <span class="goal-annual-badge">${annualRate}%</span>
+      </div>
+      <div class="goal-annual-bar-wrap">
+        <div class="goal-annual-bar" style="width:${annualRate}%"></div>
+      </div>
+      <div class="goal-annual-meta">
+        <span>達成 <strong>${annualCount}件</strong></span>
+        <span>残り <strong>${Math.max(annualGoalNum - annualCount, 0)}件</strong></span>
+      </div>
+    </div>
+  `;
+
+  // 部署別月次目標（月・年表示のみ）
+  if (monthCount !== null) {
+    const unitGoal = MONTHLY_GOAL * monthCount;
+    UNITS.forEach(unit => {
+      const count = filtered.filter(r => r.unit === unit).length;
+      const rate = Math.min(Math.round(count / unitGoal * 100), 100);
+      const barClass = rate >= 100 ? 'goal-bar-green' : rate >= 50 ? 'goal-bar-yellow' : 'goal-bar-red';
+      const badgeClass = rate >= 100 ? 'achieved' : rate >= 50 ? 'progress' : 'low';
+      const badgeText = rate >= 100 ? '達成 ✓' : `${rate}%`;
+      html += `
+        <div class="goal-card">
+          <div class="goal-card-header">
+            <span class="goal-card-title">${escHtml(unit)}｜${periodLabel}目標：${unitGoal}件</span>
+            <span class="goal-badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <div class="goal-progress-bar-wrap">
+            <div class="goal-progress-bar ${barClass}" style="width:${rate}%"></div>
+          </div>
+          <div class="goal-meta">
+            <span>達成 <strong>${count}件</strong> / 目標 ${unitGoal}件</span>
+            <span>残り <strong>${Math.max(unitGoal - count, 0)}件</strong></span>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById('goalSection').innerHTML = html;
+}
+
+// ===== DETAIL MODAL =====
+function openDetail(idx) {
+  const r = filteredReports[idx];
+  if (!r) return;
+
+  document.getElementById('modalTitle').textContent = `${r.customer} — ${parseDate(r.datetime).toLocaleDateString('ja-JP')}`;
+
+  // Photos
+  let photosHtml = '';
+  if (r.beforePhoto) {
+    photosHtml += `<div class="modal-photo-wrap"><img src="${r.beforePhoto}"><div class="report-photo-badge before" style="bottom:6px;left:6px;position:absolute;">Before</div></div>`;
+  }
+  if (r.afterPhoto) {
+    photosHtml += `<div class="modal-photo-wrap"><img src="${r.afterPhoto}"><div class="report-photo-badge after" style="bottom:6px;left:6px;position:absolute;">After</div></div>`;
+  }
+  document.getElementById('modalPhotos').innerHTML = photosHtml;
+  if (!r.beforePhoto && !r.afterPhoto) document.getElementById('modalPhotos').innerHTML = '';
+
+  // Info
+  const dt = parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  let infoHtml = `
+    <div class="modal-info-item"><div class="modal-info-label">日時</div><div class="modal-info-value">${dt}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">部署</div><div class="modal-info-value">${escHtml(r.unit) || '—'}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">担当者</div><div class="modal-info-value">${escHtml(r.staff)}</div></div>
+  `;
+  if (r.reductionTime) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減時間</div><div class="modal-info-value" style="color:var(--yellow);font-weight:700;">${r.reductionTime} 時間/月</div></div>`;
+  if (r.reductionCost) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減費用</div><div class="modal-info-value" style="color:var(--green);font-weight:700;">${Number(r.reductionCost).toLocaleString()} 円/月</div></div>`;
+  document.getElementById('modalInfo').innerHTML = infoHtml;
+
+  // Content
+  document.getElementById('modalContent').innerHTML = r.improvement
+    ? `<div class="modal-info-label" style="margin-bottom:6px;">改善内容</div><div class="modal-content-text">${escHtml(r.improvement)}</div>`
+    : '';
+
+  document.getElementById('detailModal').classList.add('open');
+  window._currentReport = r;
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('detailModal')) closeDetailModal();
+}
+
+// ===== PRINT =====
+function printReport() {
+  const r = window._currentReport;
+  if (!r) return;
+
+  const dt = parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeRow = r.reductionTime ? `<tr><th>削減時間</th><td><span class="highlight-time">${r.reductionTime} 時間/月</span></td></tr>` : '';
+  const costRow = r.reductionCost ? `<tr><th>削減費用</th><td><span class="highlight-cost">${Number(r.reductionCost).toLocaleString()} 円/月</span></td></tr>` : '';
+
+  const beforeImg = r.beforePhoto
+    ? `<div class="photo-box"><div class="photo-label before-label">BEFORE</div><img src="${r.beforePhoto}"></div>`
+    : `<div class="photo-box no-photo"><div class="photo-label before-label">BEFORE</div><div class="no-photo-text">写真なし</div></div>`;
+  const afterImg = r.afterPhoto
+    ? `<div class="photo-box"><div class="photo-label after-label">AFTER</div><img src="${r.afterPhoto}"></div>`
+    : `<div class="photo-box no-photo"><div class="photo-label after-label">AFTER</div><div class="no-photo-text">写真なし</div></div>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>改善報告書 — ${escHtml(r.customer)} ${dt}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11pt;
+    color: #1A1D23;
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 15mm 15mm;
+  }
+
+  .page {
+    width: 180mm;
+    min-height: 257mm;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  /* ヘッダー */
+  .doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8pt;
+    border-bottom: 2.5pt solid #1A6FE8;
+    margin-bottom: 14pt;
+  }
+
+  .doc-title {
+    font-size: 18pt;
+    font-weight: 700;
+    color: #1A6FE8;
+    letter-spacing: 0.02em;
+  }
+
+  .doc-logo {
+    font-size: 10pt;
+    color: #9AA0AD;
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  /* 基本情報テーブル */
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14pt;
+    font-size: 10pt;
+  }
+
+  .info-table th {
+    width: 28mm;
+    background: #F0F2F5;
+    padding: 7pt 10pt;
+    text-align: left;
+    font-weight: 600;
+    color: #5A6070;
+    border: 1pt solid #E2E5EA;
+    white-space: nowrap;
+  }
+
+  .info-table td {
+    padding: 7pt 10pt;
+    border: 1pt solid #E2E5EA;
+    color: #1A1D23;
+    font-weight: 500;
+  }
+
+  .highlight-time {
+    color: #D97706;
+    font-weight: 700;
+    font-size: 11pt;
+  }
+
+  .highlight-cost {
+    color: #16A34A;
+    font-weight: 700;
+    font-size: 11pt;
+  }
+
+  /* 改善内容 */
+  .section-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #5A6070;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6pt;
+    padding-bottom: 4pt;
+    border-bottom: 1pt solid #E2E5EA;
+  }
+
+  .content-box {
+    border: 1pt solid #E2E5EA;
+    border-radius: 4pt;
+    padding: 10pt;
+    min-height: 36pt;
+    font-size: 10.5pt;
+    line-height: 1.8;
+    color: #1A1D23;
+    margin-bottom: 14pt;
+    background: #FAFBFC;
+  }
+
+  /* 写真エリア */
+  .photos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt;
+    margin-bottom: 14pt;
+  }
+
+  .photo-box {
+    border: 1pt solid #E2E5EA;
+    border-radius: 4pt;
+    overflow: hidden;
+  }
+
+  .photo-label {
+    padding: 5pt 10pt;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .before-label { background: #FEF3C7; color: #D97706; }
+  .after-label  { background: #DCFCE7; color: #16A34A; }
+
+  .photo-box img {
+    width: 100%;
+    height: 70mm;
+    object-fit: cover;
+    display: block;
+  }
+
+  .no-photo {
+    background: #F5F6F8;
+  }
+
+  .no-photo-text {
+    height: 70mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9AA0AD;
+    font-size: 10pt;
+  }
+
+  /* フッター */
+  .doc-footer {
+    border-top: 1pt solid #E2E5EA;
+    padding-top: 8pt;
+    font-size: 8.5pt;
+    color: #9AA0AD;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* 印刷時ボタン非表示 */
+  .print-actions {
+    text-align: center;
+    padding: 16pt 0 10pt;
+    display: flex;
+    gap: 10pt;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 9pt 22pt;
+    border-radius: 6pt;
+    font-size: 11pt;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-print { background: #1A6FE8; color: white; }
+  .btn-close { background: #F0F2F5; color: #5A6070; }
+
+  @media print {
+    .print-actions { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="print-actions">
+    <button class="btn btn-print" onclick="window.print()">🖨️ 印刷 / PDF保存</button>
+    <button class="btn btn-close" onclick="window.close()">✕ 閉じる</button>
+  </div>
+
+  <div class="doc-header">
+    <div class="doc-title">♻ 改善報告書</div>
+    <div class="doc-logo">産廃回収 改善報告アプリ<br>${dt}</div>
+  </div>
+
+  <table class="info-table">
+    <tr><th>顧客名</th><td>${escHtml(r.customer)}</td></tr>
+    <tr><th>日付</th><td>${dt}</td></tr>
+    <tr><th>部署</th><td>${escHtml(r.unit) || '—'}</td></tr>
+    <tr><th>担当者</th><td>${escHtml(r.staff)}</td></tr>
+    ${timeRow}
+    ${costRow}
+  </table>
+
+  <div class="section-title">改善内容</div>
+  <div class="content-box">${escHtml(r.improvement || '（記載なし）').replace(/\n/g, '<br>')}</div>
+
+  <div class="section-title">ビフォーアフター写真</div>
+  <div class="photos-grid">
+    ${beforeImg}
+    ${afterImg}
+  </div>
+
+  <div class="doc-footer">
+    <span>改善報告書 — ${escHtml(r.customer)} / ${escHtml(r.unit)} / ${escHtml(r.staff)}</span>
+    <span>出力日：${new Date().toLocaleDateString('ja-JP')}</span>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const win  = window.open(url, '_blank');
+  if (!win) showToast('ポップアップがブロックされました。許可してください', 'error');
+}
+
+// ===== SETTINGS MODAL =====
+function openSettings() {
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettingsModal(e) {
+  if (e.target === document.getElementById('settingsModal'))
+    document.getElementById('settingsModal').classList.remove('open');
+}
+
+// ===== TOAST =====
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ===== UTILS =====
+// "2026-05-29" 形式をUTCズレなくローカル日付で解釈する
+function parseDate(str) {
+  if (!str) return new Date(NaN);
+  // YYYY-MM-DD 形式はタイムゾーンをローカルとして扱う
+  const m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  return new Date(str);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
