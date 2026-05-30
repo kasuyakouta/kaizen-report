@@ -1273,6 +1273,26 @@
   </div>
 </div>
 
+<!-- ===== PASSWORD MODAL ===== -->
+<div class="modal-overlay" id="pwModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-header">
+      <div class="modal-title">🔒 パスワード認証</div>
+      <button class="modal-close" onclick="document.getElementById('pwModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">設定画面を開くにはパスワードを入力してください。</p>
+      <div class="settings-input-wrap" style="margin-bottom:8px;">
+        <input type="password" id="pwInput" placeholder="パスワード"
+          style="width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-family:inherit;letter-spacing:0.15em;text-align:center;"
+          onkeydown="if(event.key==='Enter')submitPassword()">
+      </div>
+      <p id="pwError" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;text-align:center;">パスワードが違います</p>
+      <button class="settings-save-btn" onclick="submitPassword()">確認</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== SETTINGS MODAL ===== -->
 <div class="modal-overlay" id="settingsModal" onclick="closeSettingsModal(event)">
   <div class="modal">
@@ -1286,9 +1306,28 @@
         <input type="text" id="settingsGasUrl" placeholder="https://script.google.com/macros/s/...">
       </div>
       <div class="settings-input-wrap">
-        <label>担当者リスト（改行区切り）</label>
+        <label>担当者リスト（改行区切りで入力）</label>
         <textarea id="settingsStaffList" style="width:100%;height:120px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;" placeholder="田中 太郎&#10;佐藤 花子&#10;鈴木 一郎"></textarea>
       </div>
+      <div style="border-top:1px solid var(--border);margin:16px 0 14px;"></div>
+      <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">目標設定</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="settings-input-wrap" style="margin-bottom:0;">
+          <label>月次目標（各部署・件）</label>
+          <div class="unit-label">
+            <input type="number" id="settingsMonthlyGoal" min="1" value="4" style="border:none;padding:9px 12px;font-size:14px;font-family:inherit;width:100%;">
+            <span class="unit-suffix">件/月</span>
+          </div>
+        </div>
+        <div class="settings-input-wrap" style="margin-bottom:0;">
+          <label>年間目標（全体・件）</label>
+          <div class="unit-label">
+            <input type="number" id="settingsAnnualGoal" min="1" value="100" style="border:none;padding:9px 12px;font-size:14px;font-family:inherit;width:100%;">
+            <span class="unit-suffix">件/年</span>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin:16px 0 14px;"></div>
       <button class="settings-save-btn" onclick="saveSettings()">保存する</button>
     </div>
   </div>
@@ -1321,32 +1360,74 @@ function setDefaultDatetime() {
 }
 
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw3x_oa9bvka9SlpuKDZ5U1YU7xKVMLY1u6QLpLv1NXXIalIYfR1p0Dxappb3E6WvdK/exec';
+const SETTINGS_PASSWORD = '3150';
 
-function loadSettings() {
+async function loadSettings() {
   // GAS URLが未設定の場合はデフォルト値を自動セット
   if (!localStorage.getItem(STORAGE_KEY_GAS_URL)) {
     localStorage.setItem(STORAGE_KEY_GAS_URL, DEFAULT_GAS_URL);
   }
   const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
-  const staffRaw = localStorage.getItem(STORAGE_KEY_STAFF) || '';
-  const staffList = staffRaw ? staffRaw.split('\n').filter(s => s.trim()) : [];
-
   document.getElementById('settingsGasUrl').value = gasUrl;
-  document.getElementById('settingsStaffList').value = staffRaw;
 
-  // Populate dropdowns
-  populateStaffDropdown(staffList);
+  // GASから設定を取得
+  if (!gasUrl) return;
+  try {
+    const res = await fetch(`${gasUrl}?action=getSettings`);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      const staffList = data.staffList || [];
+      window._remoteSettings = data;
+
+      // 設定画面に反映
+      document.getElementById('settingsStaffList').value = staffList.join('\n');
+      document.getElementById('settingsMonthlyGoal').value = data.monthlyGoal ?? 4;
+      document.getElementById('settingsAnnualGoal').value  = data.annualGoal  ?? 100;
+
+      // ドロップダウン更新
+      populateStaffDropdown(staffList);
+
+      // サマリー用目標値を上書き
+      window._monthlyGoal = parseInt(data.monthlyGoal) || 4;
+      window._annualGoal  = parseInt(data.annualGoal)  || 100;
+    }
+  } catch(e) {
+    console.warn('設定取得失敗:', e.message);
+  }
 }
 
-function saveSettings() {
-  const gasUrl = document.getElementById('settingsGasUrl').value.trim();
-  const staffRaw = document.getElementById('settingsStaffList').value.trim();
+async function saveSettings() {
+  const gasUrl      = document.getElementById('settingsGasUrl').value.trim();
+  const staffRaw    = document.getElementById('settingsStaffList').value.trim();
+  const monthlyGoal = document.getElementById('settingsMonthlyGoal').value.trim();
+  const annualGoal  = document.getElementById('settingsAnnualGoal').value.trim();
+
+  if (!gasUrl) { showToast('GAS URLを入力してください', 'error'); return; }
+
   localStorage.setItem(STORAGE_KEY_GAS_URL, gasUrl);
-  localStorage.setItem(STORAGE_KEY_STAFF, staffRaw);
-  loadSettings();
-  checkConfig();
-  document.getElementById('settingsModal').classList.remove('open');
-  showToast('設定を保存しました', 'success');
+
+  try {
+    const payload = {
+      action: 'saveSettings',
+      staffList:    staffRaw.split('\n').map(s => s.trim()).filter(Boolean),
+      monthlyGoal:  parseInt(monthlyGoal) || 4,
+      annualGoal:   parseInt(annualGoal)  || 100,
+    };
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+    if (result.status !== 'ok') throw new Error(result.message);
+
+    await loadSettings();
+    checkConfig();
+    document.getElementById('settingsModal').classList.remove('open');
+    showToast('設定を保存しました', 'success');
+  } catch(e) {
+    showToast('保存に失敗しました: ' + e.message, 'error');
+  }
 }
 
 function checkConfig() {
@@ -1693,9 +1774,9 @@ function renderGoals(filtered) {
   const now = new Date();
   const UNITS = ['ユニット2', 'ユニット3'];
 
-  // 目標値
-  const MONTHLY_GOAL = 4;       // 各部署 月4件
-  const ANNUAL_GOAL  = 100;     // 全体 年間100件
+  // 目標値（GASから取得した値を優先）
+  const MONTHLY_GOAL = window._monthlyGoal || 4;
+  const ANNUAL_GOAL  = window._annualGoal  || 100;
 
   // 期間ラベル・目標件数を期間に応じて算出
   let periodLabel, monthCount;
@@ -2073,7 +2154,21 @@ function printReport() {
 
 // ===== SETTINGS MODAL =====
 function openSettings() {
-  document.getElementById('settingsModal').classList.add('open');
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').style.display = 'none';
+  document.getElementById('pwModal').classList.add('open');
+}
+
+function submitPassword() {
+  const val = document.getElementById('pwInput').value;
+  if (val === SETTINGS_PASSWORD) {
+    document.getElementById('pwModal').classList.remove('open');
+    document.getElementById('settingsModal').classList.add('open');
+  } else {
+    document.getElementById('pwError').style.display = 'block';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
 }
 
 function closeSettingsModal(e) {
