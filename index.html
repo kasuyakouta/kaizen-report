@@ -501,6 +501,86 @@
 
   .report-card:hover { box-shadow: var(--shadow-md); }
 
+  /* ===== PIN PAD ===== */
+  .pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .pin-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    transition: all 0.15s;
+    display: block;
+  }
+
+  .pin-dot.filled {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.1);
+  }
+
+  .pin-dot.error {
+    background: var(--red);
+    border-color: var(--red);
+    animation: pinShake 0.4s ease;
+  }
+
+  @keyframes pinShake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .pin-key {
+    height: 58px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-size: 20px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pin-key:active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: scale(0.94);
+  }
+
+  .pin-key-clear {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text2);
+    background: var(--surface2);
+  }
+
+  .pin-key-del {
+    font-size: 18px;
+    color: var(--text2);
+    background: var(--surface2);
+  }
+
   .no-badge {
     font-size: 11px;
     font-weight: 700;
@@ -1342,21 +1422,38 @@
 </div>
 
 <!-- ===== PASSWORD MODAL ===== -->
-<div class="modal-overlay" id="pwModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal" style="max-width:340px;">
+<div class="modal-overlay" id="pwModal" onclick="if(event.target===this)pwModalClose()">
+  <div class="modal" style="max-width:300px;">
     <div class="modal-header">
-      <div class="modal-title">🔒 パスワード認証</div>
-      <button class="modal-close" onclick="document.getElementById('pwModal').classList.remove('open')">✕</button>
+      <div class="modal-title">🔒 設定</div>
+      <button class="modal-close" onclick="pwModalClose()">✕</button>
     </div>
-    <div class="modal-body">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">設定画面を開くにはパスワードを入力してください。</p>
-      <div class="settings-input-wrap" style="margin-bottom:8px;">
-        <input type="password" id="pwInput" placeholder="パスワード"
-          style="width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-family:inherit;letter-spacing:0.15em;text-align:center;"
-          onkeydown="if(event.key==='Enter')submitPassword()">
+    <div class="modal-body" style="padding:20px 20px 24px;">
+
+      <!-- 入力インジケーター（●で桁数表示） -->
+      <div class="pin-dots" id="pinDots">
+        <span class="pin-dot" id="dot0"></span>
+        <span class="pin-dot" id="dot1"></span>
+        <span class="pin-dot" id="dot2"></span>
+        <span class="pin-dot" id="dot3"></span>
       </div>
-      <p id="pwError" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;text-align:center;">パスワードが違います</p>
-      <button class="settings-save-btn" onclick="submitPassword()">確認</button>
+      <p id="pwError" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;text-align:center;font-weight:600;">パスワードが違います</p>
+
+      <!-- テンキー -->
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pinInput('1')">1</button>
+        <button class="pin-key" onclick="pinInput('2')">2</button>
+        <button class="pin-key" onclick="pinInput('3')">3</button>
+        <button class="pin-key" onclick="pinInput('4')">4</button>
+        <button class="pin-key" onclick="pinInput('5')">5</button>
+        <button class="pin-key" onclick="pinInput('6')">6</button>
+        <button class="pin-key" onclick="pinInput('7')">7</button>
+        <button class="pin-key" onclick="pinInput('8')">8</button>
+        <button class="pin-key" onclick="pinInput('9')">9</button>
+        <button class="pin-key pin-key-clear" onclick="pinClear()">C</button>
+        <button class="pin-key" onclick="pinInput('0')">0</button>
+        <button class="pin-key pin-key-del" onclick="pinDelete()">⌫</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2305,21 +2402,66 @@ async function confirmDelete(id, label) {
 }
 
 // ===== SETTINGS MODAL =====
+let _pinValue = '';
+
 function openSettings() {
-  document.getElementById('pwInput').value = '';
+  _pinValue = '';
+  updatePinDots();
   document.getElementById('pwError').style.display = 'none';
   document.getElementById('pwModal').classList.add('open');
 }
 
+function pwModalClose() {
+  document.getElementById('pwModal').classList.remove('open');
+  _pinValue = '';
+  updatePinDots();
+}
+
+function pinInput(digit) {
+  if (_pinValue.length >= 4) return;
+  _pinValue += digit;
+  updatePinDots();
+  if (_pinValue.length === 4) {
+    setTimeout(() => submitPassword(), 120);
+  }
+}
+
+function pinDelete() {
+  _pinValue = _pinValue.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pwError').style.display = 'none';
+}
+
+function pinClear() {
+  _pinValue = '';
+  updatePinDots();
+  document.getElementById('pwError').style.display = 'none';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.classList.toggle('filled', i < _pinValue.length);
+    dot.classList.remove('error');
+  }
+}
+
 function submitPassword() {
-  const val = document.getElementById('pwInput').value;
-  if (val === SETTINGS_PASSWORD) {
+  if (_pinValue === SETTINGS_PASSWORD) {
     document.getElementById('pwModal').classList.remove('open');
     document.getElementById('settingsModal').classList.add('open');
+    _pinValue = '';
+    updatePinDots();
   } else {
     document.getElementById('pwError').style.display = 'block';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').focus();
+    for (let i = 0; i < 4; i++) {
+      document.getElementById('dot' + i).classList.add('error');
+    }
+    setTimeout(() => {
+      _pinValue = '';
+      updatePinDots();
+      document.getElementById('pwError').style.display = 'none';
+    }, 800);
   }
 }
 
