@@ -1322,7 +1322,7 @@
   <!-- ===== FORM PAGE ===== -->
   <div id="page-form" class="page active">
 
-    <div id="configBanner" class="config-banner">
+    <div id="configBanner" class="config-banner hidden">
       <span>⚠️</span>
       <div>
         <strong>初期設定が必要です</strong>
@@ -1708,8 +1708,7 @@ let currentSummaryPeriod = 'all';
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   setDefaultDatetime();
-  loadSettings();
-  checkConfig();
+  loadSettings().then(() => checkConfig());
 });
 
 function setDefaultDatetime() {
@@ -2319,9 +2318,7 @@ async function submitEditReport() {
 
   const appendText = document.getElementById('editImprovementAppend').value.trim();
   const newImprovement = _editTargetReport.improvement
-    ? (_editTargetReport.improvement + (appendText ? '
-
-【完了時追記】' + appendText : ''))
+    ? (_editTargetReport.improvement + (appendText ? '\n\n【完了時追記】' + appendText : ''))
     : appendText;
 
   const payload = {
