@@ -1163,6 +1163,134 @@
     border-radius: 20px;
     font-weight: 600;
   }
+
+  /* ===== STATUS BADGES ===== */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .status-badge.in-progress {
+    background: var(--yellow-light);
+    color: var(--yellow);
+    border: 1px solid #F59E0B;
+  }
+
+  .status-badge.completed {
+    background: var(--green-light);
+    color: var(--green);
+  }
+
+  /* 進行中カードの左ボーダー強調 */
+  .report-card.in-progress {
+    border-left: 3px solid var(--yellow);
+  }
+
+  .report-card.completed {
+    border-left: 3px solid var(--green);
+  }
+
+  /* アフター追加ボタン */
+  .add-after-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    background: var(--yellow-light);
+    border: 1px dashed #F59E0B;
+    border-radius: 0 0 var(--radius) var(--radius);
+    color: var(--yellow);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .add-after-btn:hover {
+    background: #FDE68A;
+    border-color: var(--yellow);
+  }
+
+  /* ステータスフィルター */
+  .filter-select.status-filter { }
+
+  /* ===== EDIT MODAL ===== */
+  .edit-modal-photo-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+    position: relative;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .edit-modal-photo-area:hover { border-color: var(--green); background: var(--green-light); }
+  .edit-modal-photo-area.has-image { border-style: solid; border-color: var(--border); padding: 0; overflow: hidden; }
+  .edit-modal-photo-area.has-image img { width: 100%; height: 180px; object-fit: cover; display: block; }
+
+  .edit-photo-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .edit-submit-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .edit-submit-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .edit-submit-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .existing-before-thumb {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .existing-before-thumb img { width: 100%; height: 120px; object-fit: cover; display: block; }
+
+  .edit-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
 </style>
 </head>
 <body>
@@ -1334,6 +1462,11 @@
     </div>
 
     <div class="list-filters">
+      <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+        <option value="">状態: 全件</option>
+        <option value="in-progress">🟡 進行中</option>
+        <option value="completed">✅ 完了</option>
+      </select>
       <select class="filter-select" id="filterUnit" onchange="applyFilters()">
         <option value="">部署: 全件</option>
         <option value="ユニット2">ユニット2</option>
@@ -1496,6 +1629,52 @@
       <button class="settings-save-btn" onclick="saveSettings()">保存する</button>
       <div style="border-top:1px solid var(--border);margin:16px 0 14px;"></div>
       <button class="settings-save-btn" style="background:var(--red);" onclick="openDeleteModal()">🗑 報告の削除管理</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDIT (AFTER PHOTO) MODAL ===== -->
+<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="editModalTitle">✏️ アフター写真を追加</div>
+      <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 既存のビフォー写真（参考表示） -->
+      <div id="editBeforeSection" style="display:none; margin-bottom:16px;">
+        <div class="edit-section-label">📷 BEFORE（登録済み）</div>
+        <div class="existing-before-thumb">
+          <img id="editBeforeThumb" src="" alt="Before">
+        </div>
+      </div>
+
+      <!-- アフター写真アップロード -->
+      <div class="edit-section-label">📸 AFTER（追加する写真）</div>
+      <div id="editAfterDropzone" class="edit-modal-photo-area" onclick="triggerEditPhoto('file')">
+        <div class="upload-icon">📷</div>
+        <div class="photo-label after">AFTER</div>
+        <div class="upload-text">タップして写真を選択</div>
+      </div>
+      <div class="edit-photo-actions">
+        <button class="photo-btn" onclick="triggerEditPhoto('camera')">📸 カメラで撮影</button>
+        <button class="photo-btn" onclick="triggerEditPhoto('file')">🖼 ファイルを選択</button>
+      </div>
+      <input type="file" id="editAfterFileInput" accept="image/*" style="display:none" onchange="handleEditPhoto(this)">
+      <input type="file" id="editAfterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleEditPhoto(this)">
+
+      <!-- 改善内容の追記（任意） -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;">改善内容の追記（任意）</label>
+        <textarea id="editImprovementAppend" placeholder="完了時のコメントなど..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+
+      <button class="edit-submit-btn" id="editSubmitBtn" onclick="submitEditReport()">
+        <span id="editSubmitText">✅ アフター写真を登録して完了にする</span>
+      </button>
+
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;">※ ステータスが「進行中」→「完了」に更新されます</p>
     </div>
   </div>
 </div>
@@ -1721,6 +1900,9 @@ async function submitReport() {
   btn.disabled = true;
   txt.innerHTML = '<span class="spinner"></span> 送信中...';
 
+  // アフター写真があれば完了、なければ進行中
+  const reportStatus = photoData.after ? 'completed' : 'in-progress';
+
   const payload = {
     action: 'addReport',
     datetime,
@@ -1732,6 +1914,7 @@ async function submitReport() {
     reductionCost: reductionCost || '',
     beforePhoto: photoData.before || '',
     afterPhoto: photoData.after || '',
+    status: reportStatus,
   };
 
   try {
@@ -1826,12 +2009,16 @@ function applyFilters() {
   const unit = document.getElementById('filterUnit').value;
   const staff = document.getElementById('filterStaff').value;
   const customer = document.getElementById('filterCustomer').value;
+  const statusFilter = document.getElementById('filterStatus').value;
   const now = new Date();
 
   filteredReports = allReports.filter(r => {
     if (unit && r.unit !== unit) return false;
     if (staff && r.staff !== staff) return false;
     if (customer && r.customer !== customer) return false;
+    // ステータスフィルター：statusフィールドがない古いデータはcompletedとして扱う
+    const rStatus = r.status || 'completed';
+    if (statusFilter && rStatus !== statusFilter) return false;
     if (currentPeriod === 'month') {
       const d = parseDate(r.datetime);
       if (d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) return false;
@@ -1865,15 +2052,27 @@ function renderReportList() {
       : r.reductionTime ? `⏱ ${r.reductionTime}h/月`
       : r.reductionCost ? `💰 ${Number(r.reductionCost).toLocaleString()}円/月` : '';
 
+    // statusがない古いデータはcompletedとみなす
+    const rStatus = r.status || 'completed';
+    const isInProgress = rStatus === 'in-progress';
+    const statusBadgeHtml = isInProgress
+      ? `<span class="status-badge in-progress">🟡 進行中</span>`
+      : `<span class="status-badge completed">✅ 完了</span>`;
+
     const beforeHtml = r.beforePhoto
       ? `<div class="report-photo-wrap"><img src="${r.beforePhoto}" loading="lazy"><div class="report-photo-badge before">Before</div></div>`
       : `<div class="report-photo-wrap report-no-photo">📷</div>`;
     const afterHtml = r.afterPhoto
       ? `<div class="report-photo-wrap"><img src="${r.afterPhoto}" loading="lazy"><div class="report-photo-badge after">After</div></div>`
-      : `<div class="report-photo-wrap report-no-photo">📷</div>`;
+      : `<div class="report-photo-wrap report-no-photo">📸 アフター未登録</div>`;
+
+    // 進行中カードにはアフター追加ボタンを表示
+    const addAfterBtn = isInProgress
+      ? `<button class="add-after-btn" onclick="event.stopPropagation(); openEditModal(${i})">📸 アフター写真を追加して完了にする →</button>`
+      : '';
 
     return `
-      <div class="report-card" onclick="openDetail(${i})">
+      <div class="report-card ${rStatus}" onclick="openDetail(${i})">
         <div class="report-card-header">
           <div class="no-badge">No.${r.no}</div>
           <div class="report-card-meta">
@@ -1884,10 +2083,14 @@ function renderReportList() {
               <span>${dt}</span>
             </div>
           </div>
-          ${badgeText ? `<span class="badge ${badgeClass}">${badgeText}</span>` : ''}
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+            ${statusBadgeHtml}
+            ${badgeText ? `<span class="badge ${badgeClass}" style="font-size:10px;">${badgeText}</span>` : ''}
+          </div>
         </div>
         ${(r.beforePhoto || r.afterPhoto) ? `<div class="report-photos">${beforeHtml}${afterHtml}</div>` : ''}
         ${r.improvement ? `<div class="report-card-body">${escHtml(r.improvement.slice(0, 80))}${r.improvement.length > 80 ? '…' : ''}</div>` : ''}
+        ${addAfterBtn}
       </div>
     `;
   }).join('');
@@ -2030,6 +2233,125 @@ function renderGoals(filtered) {
   document.getElementById('goalSection').innerHTML = html;
 }
 
+// ===== EDIT MODAL (AFTER PHOTO) =====
+let _editPhotoData = null;
+let _editTargetReport = null;
+
+function openEditModal(idx) {
+  const r = filteredReports[idx];
+  if (!r) return;
+  _editTargetReport = r;
+  _editPhotoData = null;
+
+  document.getElementById('editModalTitle').textContent = `✏️ No.${r.no} ${r.customer} — アフター追加`;
+
+  // ビフォー写真があれば表示
+  const beforeSection = document.getElementById('editBeforeSection');
+  const beforeThumb = document.getElementById('editBeforeThumb');
+  if (r.beforePhoto) {
+    beforeThumb.src = r.beforePhoto;
+    beforeSection.style.display = 'block';
+  } else {
+    beforeSection.style.display = 'none';
+  }
+
+  // ドロップゾーンをリセット
+  const dz = document.getElementById('editAfterDropzone');
+  dz.classList.remove('has-image');
+  dz.innerHTML = `<div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして写真を選択</div>`;
+  dz.onclick = () => triggerEditPhoto('file');
+
+  // コメント欄リセット
+  document.getElementById('editImprovementAppend').value = '';
+
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal(e) {
+  if (e.target === document.getElementById('editModal'))
+    document.getElementById('editModal').classList.remove('open');
+}
+
+function triggerEditPhoto(mode) {
+  const id = mode === 'camera' ? 'editAfterCameraInput' : 'editAfterFileInput';
+  document.getElementById(id).click();
+}
+
+function handleEditPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    _editPhotoData = e.target.result;
+    const dz = document.getElementById('editAfterDropzone');
+    dz.classList.add('has-image');
+    dz.innerHTML = `
+      <img src="${e.target.result}" alt="After">
+      <button class="photo-remove" onclick="clearEditPhoto(event)">✕</button>
+    `;
+    dz.onclick = null;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function clearEditPhoto(e) {
+  e.stopPropagation();
+  _editPhotoData = null;
+  const dz = document.getElementById('editAfterDropzone');
+  dz.classList.remove('has-image');
+  dz.innerHTML = `<div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして写真を選択</div>`;
+  dz.onclick = () => triggerEditPhoto('file');
+}
+
+async function submitEditReport() {
+  if (!_editPhotoData) {
+    showToast('アフター写真を選択してください', 'error');
+    return;
+  }
+  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  if (!gasUrl) { showToast('GAS URLを設定してください', 'error'); return; }
+
+  const btn = document.getElementById('editSubmitBtn');
+  const txt = document.getElementById('editSubmitText');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> 送信中...';
+
+  const appendText = document.getElementById('editImprovementAppend').value.trim();
+  const newImprovement = _editTargetReport.improvement
+    ? (_editTargetReport.improvement + (appendText ? '
+
+【完了時追記】' + appendText : ''))
+    : appendText;
+
+  const payload = {
+    action: 'updateReport',
+    id: _editTargetReport.id,
+    afterPhoto: _editPhotoData,
+    status: 'completed',
+    improvement: newImprovement,
+  };
+
+  try {
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+    if (result.status !== 'ok') throw new Error(result.message);
+
+    showToast('アフター写真を登録しました！完了にしました ✅', 'success');
+    document.getElementById('editModal').classList.remove('open');
+    await loadReports();
+  } catch (err) {
+    showToast('更新に失敗しました: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    txt.innerHTML = '✅ アフター写真を登録して完了にする';
+  }
+}
+
 // ===== DETAIL MODAL =====
 function openDetail(idx) {
   const r = filteredReports[idx];
@@ -2050,8 +2372,12 @@ function openDetail(idx) {
 
   // Info
   const dt = parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  const rStatus = r.status || 'completed';
+  const statusLabel = rStatus === 'in-progress' ? '🟡 進行中' : '✅ 完了';
+  const statusColor = rStatus === 'in-progress' ? 'var(--yellow)' : 'var(--green)';
   let infoHtml = `
     <div class="modal-info-item"><div class="modal-info-label">報告番号</div><div class="modal-info-value" style="font-weight:700;color:var(--accent);">No.${r.no}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">ステータス</div><div class="modal-info-value" style="font-weight:700;color:${statusColor};">${statusLabel}</div></div>
     <div class="modal-info-item"><div class="modal-info-label">日時</div><div class="modal-info-value">${dt}</div></div>
     <div class="modal-info-item"><div class="modal-info-label">部署</div><div class="modal-info-value">${escHtml(r.unit) || '—'}</div></div>
     <div class="modal-info-item"><div class="modal-info-label">担当者</div><div class="modal-info-value">${escHtml(r.staff)}</div></div>
@@ -2059,6 +2385,29 @@ function openDetail(idx) {
   if (r.reductionTime) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減時間</div><div class="modal-info-value" style="color:var(--yellow);font-weight:700;">${r.reductionTime} 時間/月</div></div>`;
   if (r.reductionCost) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減費用</div><div class="modal-info-value" style="color:var(--green);font-weight:700;">${Number(r.reductionCost).toLocaleString()} 円/月</div></div>`;
   document.getElementById('modalInfo').innerHTML = infoHtml;
+
+  // 進行中の場合は詳細モーダルにも「アフター追加」ボタンを表示
+  const modalFooter = document.querySelector('#detailModal .modal-footer');
+  if (rStatus === 'in-progress') {
+    // filteredReportsのインデックスをidで検索
+    const idx = filteredReports.findIndex(fr => fr.id === r.id);
+    if (idx >= 0) {
+      let editBtn = document.getElementById('detailEditBtn');
+      if (!editBtn) {
+        editBtn = document.createElement('button');
+        editBtn.id = 'detailEditBtn';
+        editBtn.className = 'edit-submit-btn';
+        editBtn.style.marginBottom = '8px';
+        modalFooter.insertBefore(editBtn, modalFooter.firstChild);
+      }
+      editBtn.innerHTML = '📸 アフター写真を追加して完了にする';
+      editBtn.onclick = () => { closeDetailModal(); openEditModal(idx); };
+      editBtn.style.display = 'flex';
+    }
+  } else {
+    const editBtn = document.getElementById('detailEditBtn');
+    if (editBtn) editBtn.style.display = 'none';
+  }
 
   // Content
   document.getElementById('modalContent').innerHTML = r.improvement
