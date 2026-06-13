@@ -7,1063 +7,493 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #F5F6F8;
-    --surface: #FFFFFF;
-    --surface2: #F0F2F5;
-    --border: #E2E5EA;
-    --accent: #1A6FE8;
-    --accent-light: #EAF1FD;
-    --accent-dark: #1458C0;
-    --green: #16A34A;
-    --green-light: #DCFCE7;
-    --red: #DC2626;
-    --red-light: #FEE2E2;
-    --yellow: #D97706;
-    --yellow-light: #FEF3C7;
-    --text: #1A1D23;
-    --text2: #5A6070;
-    --text3: #9AA0AD;
+    --bg: #F5F6F8; --surface: #FFFFFF; --surface2: #F0F2F5; --border: #E2E5EA;
+    --accent: #1A6FE8; --accent-light: #EAF1FD; --accent-dark: #1458C0;
+    --green: #16A34A; --green-light: #DCFCE7;
+    --red: #DC2626; --red-light: #FEE2E2;
+    --yellow: #D97706; --yellow-light: #FEF3C7;
+    --text: #1A1D23; --text2: #5A6070; --text3: #9AA0AD;
     --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
-    --radius: 10px;
-    --radius-sm: 6px;
+    --radius: 10px; --radius-sm: 6px;
   }
 
   html, body {
     font-family: 'Noto Sans JP', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+    background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.6;
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
   }
 
-  /* ===== LAYOUT ===== */
+  /* ===== HEADER ===== */
   .app-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 52px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 16px; display: flex; align-items: center;
+    justify-content: space-between; height: 52px;
+    position: sticky; top: 0; z-index: 100;
   }
-
   .app-header .logo {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 15px; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
   }
-
   .app-header .logo-icon {
-    width: 28px; height: 28px;
-    background: var(--accent);
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 14px;
+    width: 28px; height: 28px; background: var(--accent);
+    border-radius: 7px; display: flex; align-items: center;
+    justify-content: center; color: white; font-size: 14px;
+  }
+  .settings-link {
+    background: none; border: none; color: var(--accent);
+    font-size: 12px; cursor: pointer; text-decoration: underline;
+    font-family: inherit; padding: 0;
   }
 
+  /* ===== NAV ===== */
   .nav-tabs {
-    display: flex;
-    background: var(--surface);
+    display: flex; background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 0 8px;
-    gap: 0;
-    overflow-x: auto;
+    padding: 0 8px; overflow-x: auto;
   }
-
   .nav-tab {
-    padding: 12px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text2);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    transition: all 0.15s;
-    display: flex; align-items: center; gap: 6px;
+    padding: 12px 14px; font-size: 13px; font-weight: 500;
+    color: var(--text2); border: none; background: transparent;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    white-space: nowrap; transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px; position: relative;
   }
-
-  .nav-tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .nav-tab:hover:not(.active) { color: var(--text); }
 
-  .tab-icon { font-size: 15px; }
-
-  .main-content {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 16px;
+  /* 未完了バッジ */
+  .tab-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    background: var(--yellow); color: white;
+    border-radius: 99px; font-size: 10px; font-weight: 700;
+    line-height: 1;
   }
+  .tab-badge.hidden { display: none; }
 
+  .main-content { max-width: 720px; margin: 0 auto; padding: 16px; }
   .page { display: none; }
   .page.active { display: block; }
 
   /* ===== FORM ===== */
-  .section-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
   .form-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 12px; box-shadow: var(--shadow);
   }
-
   .form-card-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 14px;
-    padding-bottom: 10px;
+    font-size: 12px; font-weight: 700; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 14px; padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
   }
-
-  .form-group {
-    margin-bottom: 14px;
-  }
-
+  .form-group { margin-bottom: 14px; }
   .form-group:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+  label .required { color: var(--red); margin-left: 3px; font-size: 11px; }
 
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text2);
-    margin-bottom: 6px;
-  }
-
-  label .required {
-    color: var(--red);
-    margin-left: 3px;
-    font-size: 11px;
-  }
-
-  input[type="text"],
-  input[type="date"],
-  input[type="number"],
-  select,
-  textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--text);
-    background: var(--surface);
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+    color: var(--text); background: var(--surface);
     transition: border-color 0.15s, box-shadow 0.15s;
-    appearance: none;
-    -webkit-appearance: none;
+    appearance: none; -webkit-appearance: none;
   }
-
   input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--accent);
+    outline: none; border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(26,111,232,0.12);
   }
-
   select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239AA0AD' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
   }
-
   textarea { resize: vertical; min-height: 80px; }
 
-  /* ===== REDUCTION TOGGLE ===== */
-  .reduction-toggle {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+  /* ===== DRAFT BANNER ===== */
+  .draft-banner {
+    background: var(--accent-light); border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 10px 14px;
+    margin-bottom: 12px; font-size: 12px; color: var(--accent);
+    display: none; align-items: center; gap: 8px; justify-content: space-between;
   }
-
-  .toggle-btn {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface2);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text2);
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
+  .draft-banner.show { display: flex; }
+  .draft-banner-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .draft-btn {
+    padding: 4px 10px; border-radius: var(--radius-sm);
+    font-size: 11px; font-weight: 700; font-family: inherit;
+    cursor: pointer; border: none; transition: all 0.15s;
   }
+  .draft-btn-restore { background: var(--accent); color: white; }
+  .draft-btn-discard { background: var(--surface2); color: var(--text2); }
 
-  .toggle-btn.active {
-    border-color: var(--accent);
-    background: var(--accent-light);
-    color: var(--accent);
-  }
-
-  /* チェックボックス式 削減効果 */
+  /* ===== REDUCTION ===== */
   .reduction-item {
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: border-color 0.15s;
-    margin-bottom: 10px;
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; transition: border-color 0.15s; margin-bottom: 10px;
   }
   .reduction-item:last-child { margin-bottom: 0; }
   .reduction-item.active { border-color: var(--accent); }
-
   .reduction-check-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    cursor: pointer;
-    user-select: none;
-    background: var(--surface);
-    transition: background 0.15s;
+    display: flex; align-items: center; gap: 12px; padding: 13px 14px;
+    cursor: pointer; user-select: none; background: var(--surface); transition: background 0.15s;
   }
   .reduction-check-row:hover { background: var(--surface2); }
   .reduction-item.active .reduction-check-row { background: var(--accent-light); }
-
   .reduction-checkbox {
-    width: 20px; height: 20px;
-    border: 2px solid var(--border);
-    border-radius: 5px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.15s;
-    background: var(--surface);
-    font-size: 13px;
-    color: transparent;
+    width: 20px; height: 20px; border: 2px solid var(--border);
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s; background: var(--surface);
+    font-size: 13px; color: transparent;
   }
-  .reduction-item.active .reduction-checkbox {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
-
-  .reduction-check-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    flex: 1;
-  }
-  .reduction-check-hint {
-    font-size: 11px;
-    color: var(--text3);
-    font-weight: 400;
-  }
-
+  .reduction-item.active .reduction-checkbox { background: var(--accent); border-color: var(--accent); color: white; }
+  .reduction-check-label { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+  .reduction-check-hint { font-size: 11px; color: var(--text3); font-weight: 400; }
   .reduction-input-wrap {
-    padding: 0 14px;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.25s ease, padding 0.25s ease;
-    background: var(--surface);
+    padding: 0 14px; max-height: 0; overflow: hidden;
+    transition: max-height 0.25s ease, padding 0.25s ease; background: var(--surface);
   }
-  .reduction-item.active .reduction-input-wrap {
-    max-height: 80px;
-    padding: 0 14px 14px;
-  }
-
-  .unit-label {
-    display: flex; align-items: center;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-  }
-
-  .unit-label input {
-    border: none;
-    border-radius: 0;
-    flex: 1;
-  }
-
+  .reduction-item.active .reduction-input-wrap { max-height: 80px; padding: 0 14px 14px; }
+  .unit-label { display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .unit-label input { border: none; border-radius: 0; flex: 1; }
   .unit-label input:focus { box-shadow: none; }
-
   .unit-suffix {
-    padding: 0 12px;
-    background: var(--surface2);
-    color: var(--text2);
-    font-size: 13px;
-    font-weight: 500;
-    border-left: 1px solid var(--border);
-    height: 40px;
-    display: flex; align-items: center;
-    white-space: nowrap;
+    padding: 0 12px; background: var(--surface2); color: var(--text2);
+    font-size: 13px; font-weight: 500; border-left: 1px solid var(--border);
+    height: 40px; display: flex; align-items: center; white-space: nowrap;
   }
 
   /* ===== PHOTO UPLOAD ===== */
-  .photo-grid { display: flex; flex-direction: column; gap: 16px; }
-
+  .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .photo-upload-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 24px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: var(--surface2);
-    position: relative;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 20px 12px; text-align: center; cursor: pointer;
+    transition: all 0.15s; background: var(--surface2); position: relative;
+    min-height: 160px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
   }
-
   .photo-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
   .photo-upload-area.has-image { border-style: solid; border-color: var(--border); padding: 0; overflow: hidden; }
-
-  .photo-label {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
+  .photo-label { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
   .photo-label.before { color: var(--yellow); }
-  .photo-label.after { color: var(--green); }
-
-  .photo-upload-area .upload-icon { font-size: 36px; }
-  .photo-upload-area .upload-text { font-size: 13px; color: var(--text3); margin-top: 2px; }
-
-  .photo-upload-area img {
-    width: 100%; height: 220px;
-    object-fit: cover;
-    display: block;
-  }
-
+  .photo-label.after  { color: var(--green); }
+  .photo-upload-area .upload-icon { font-size: 28px; }
+  .photo-upload-area .upload-text { font-size: 11px; color: var(--text3); }
+  .photo-upload-area img { width: 100%; height: 160px; object-fit: cover; display: block; }
   .photo-badge {
-    position: absolute;
-    top: 6px; left: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 2px 7px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    background: rgba(255,255,255,0.9);
+    position: absolute; top: 6px; left: 6px; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.05em; padding: 2px 7px; border-radius: 4px;
+    text-transform: uppercase; background: rgba(255,255,255,0.9);
   }
-
   .photo-badge.before { color: var(--yellow); }
-  .photo-badge.after { color: var(--green); }
-
+  .photo-badge.after  { color: var(--green); }
   .photo-remove {
-    position: absolute;
-    top: 6px; right: 6px;
-    width: 22px; height: 22px;
-    background: rgba(0,0,0,0.5);
-    border: none; border-radius: 50%;
-    color: white; font-size: 13px;
-    cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-    line-height: 1;
+    position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
+    background: rgba(0,0,0,0.5); border: none; border-radius: 50%;
+    color: white; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
   }
-
-  .photo-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    width: 100%;
-  }
-
+  .photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
   .photo-btn {
-    flex: 1;
-    padding: 11px 8px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.15s;
+    padding: 9px 6px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); font-size: 12px; font-weight: 600; color: var(--text2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s;
   }
-
   .photo-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-
-  /* ===== SUBMIT BUTTON ===== */
-  .submit-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 16px;
+  /* 写真リサイズ中インジケーター */
+  .photo-resizing {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--text2); gap: 6px;
   }
 
+  /* ===== SUBMIT ===== */
+  .submit-btn {
+    width: 100%; padding: 14px; background: var(--accent); color: white;
+    border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700;
+    font-family: inherit; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px;
+  }
   .submit-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
   .submit-btn:active { transform: translateY(0); }
   .submit-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
 
+  /* ===== CONFIG BANNER ===== */
+  .config-banner {
+    background: var(--yellow-light); border: 1px solid #F59E0B;
+    border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px;
+    font-size: 12px; color: var(--yellow); display: flex; align-items: flex-start; gap: 8px;
+  }
+  .config-banner.hidden { display: none; }
+  .config-banner strong { display: block; margin-bottom: 2px; font-size: 13px; }
+
   /* ===== TOAST ===== */
   .toast {
-    position: fixed;
-    bottom: 24px; left: 50%;
+    position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: var(--text);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 9999;
-    pointer-events: none;
-    white-space: nowrap;
+    background: var(--text); color: white; padding: 12px 20px;
+    border-radius: 8px; font-size: 13px; font-weight: 500;
+    opacity: 0; transition: all 0.3s; z-index: 9999;
+    pointer-events: none; white-space: nowrap; max-width: 90vw; text-align: center;
   }
-
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.success { background: var(--green); }
   .toast.error { background: var(--red); }
 
   /* ===== LIST PAGE ===== */
+  .list-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .period-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+  .period-btn {
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px;
+    font-size: 12px; font-weight: 500; color: var(--text2);
+    background: var(--surface); cursor: pointer; transition: all 0.15s;
+  }
+  .period-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .refresh-btn {
+    padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 500; color: var(--text2); background: var(--surface);
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; margin-left: auto;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   .list-filters {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;
   }
-
   .filter-select {
-    padding: 8px 28px 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-family: inherit;
-    color: var(--text2);
-    background: var(--surface);
+    padding: 8px 28px 8px 10px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 12px; font-family: inherit;
+    color: var(--text2); background: var(--surface);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath fill='%239AA0AD' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    white-space: nowrap;
-    flex-shrink: 0;
+    background-repeat: no-repeat; background-position: right 8px center;
+    cursor: pointer; appearance: none; -webkit-appearance: none;
+    white-space: nowrap; flex-shrink: 0;
   }
-
   .filter-select:focus { outline: none; border-color: var(--accent); }
 
+  .list-count {
+    font-size: 12px; color: var(--text3); background: var(--surface2);
+    padding: 3px 8px; border-radius: 20px; font-weight: 600;
+  }
+
+  /* ===== REPORT CARD ===== */
   .report-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: box-shadow 0.15s;
-    cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 12px;
+    box-shadow: var(--shadow); overflow: hidden;
+    transition: box-shadow 0.15s; cursor: pointer;
   }
-
   .report-card:hover { box-shadow: var(--shadow-md); }
-
-  /* ===== PIN PAD ===== */
-  .pin-dots {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  .pin-dot {
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    background: var(--surface);
-    transition: all 0.15s;
-    display: block;
-  }
-
-  .pin-dot.filled {
-    background: var(--accent);
-    border-color: var(--accent);
-    transform: scale(1.1);
-  }
-
-  .pin-dot.error {
-    background: var(--red);
-    border-color: var(--red);
-    animation: pinShake 0.4s ease;
-  }
-
-  @keyframes pinShake {
-    0%,100% { transform: translateX(0); }
-    20%      { transform: translateX(-6px); }
-    40%      { transform: translateX(6px); }
-    60%      { transform: translateX(-4px); }
-    80%      { transform: translateX(4px); }
-  }
-
-  .pin-keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .pin-key {
-    height: 58px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    font-size: 20px;
-    font-weight: 600;
-    font-family: inherit;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.1s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .pin-key:active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-    transform: scale(0.94);
-  }
-
-  .pin-key-clear {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text2);
-    background: var(--surface2);
-  }
-
-  .pin-key-del {
-    font-size: 18px;
-    color: var(--text2);
-    background: var(--surface2);
-  }
+  .report-card.in-progress { border-left: 3px solid var(--yellow); }
+  .report-card.completed   { border-left: 3px solid var(--green); }
 
   .no-badge {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-light);
-    border-radius: 4px;
-    padding: 2px 7px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    align-self: flex-start;
-    margin-right: 2px;
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-light); border-radius: 4px;
+    padding: 2px 7px; white-space: nowrap; flex-shrink: 0; align-self: flex-start;
   }
-
   .report-card-header {
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid var(--border);
+    padding: 12px 14px; display: flex; align-items: center;
+    gap: 10px; border-bottom: 1px solid var(--border);
   }
-
   .report-card-meta { flex: 1; min-width: 0; }
-
   .report-card-customer {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 2px;
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .report-card-sub { font-size: 11px; color: var(--text3); display: flex; gap: 8px; flex-wrap: wrap; }
 
-  .report-card-sub {
-    font-size: 11px;
-    color: var(--text3);
-    display: flex; gap: 8px; flex-wrap: wrap;
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 20px; font-size: 11px;
+    font-weight: 700; white-space: nowrap; flex-shrink: 0;
   }
+  .status-badge.in-progress { background: var(--yellow-light); color: var(--yellow); border: 1px solid #F59E0B; }
+  .status-badge.completed   { background: var(--green-light);  color: var(--green); }
 
   .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 20px; font-size: 11px;
+    font-weight: 600; white-space: nowrap; flex-shrink: 0;
   }
-
   .badge-time { background: var(--yellow-light); color: var(--yellow); }
-  .badge-cost { background: var(--green-light); color: var(--green); }
+  .badge-cost { background: var(--green-light);  color: var(--green); }
   .badge-both { background: var(--accent-light); color: var(--accent); }
 
-  .report-photos {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    height: 120px;
-  }
-
-  .report-photo-wrap {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .report-photo-wrap + .report-photo-wrap {
-    border-left: 2px solid white;
-  }
-
-  .report-photo-wrap img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-
+  .report-photos { display: grid; grid-template-columns: 1fr 1fr; height: 120px; }
+  .report-photo-wrap { position: relative; overflow: hidden; }
+  .report-photo-wrap + .report-photo-wrap { border-left: 2px solid white; }
+  .report-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
   .report-photo-badge {
-    position: absolute;
-    bottom: 6px; left: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(255,255,255,0.9);
+    position: absolute; bottom: 6px; left: 6px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 6px;
+    border-radius: 4px; background: rgba(255,255,255,0.9);
   }
-
   .report-photo-badge.before { color: var(--yellow); }
-  .report-photo-badge.after { color: var(--green); }
-
+  .report-photo-badge.after  { color: var(--green); }
   .report-no-photo {
-    background: var(--surface2);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text3); font-size: 24px;
+    background: var(--surface2); display: flex; align-items: center;
+    justify-content: center; color: var(--text3); font-size: 20px; flex-direction: column; gap: 4px;
   }
+  .report-no-photo span { font-size: 10px; }
+  .report-card-body { padding: 10px 14px; font-size: 12px; color: var(--text2); border-top: 1px solid var(--border); }
 
-  .report-card-body {
-    padding: 10px 14px;
-    font-size: 12px;
-    color: var(--text2);
-    border-top: 1px solid var(--border);
+  .add-after-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 10px; background: var(--yellow-light);
+    border: 1px dashed #F59E0B; border-radius: 0 0 var(--radius) var(--radius);
+    color: var(--yellow); font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: pointer; transition: all 0.15s;
   }
+  .add-after-btn:hover { background: #FDE68A; }
 
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text3);
-  }
-
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
   .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
   .empty-state p { font-size: 14px; }
+  .list-loading { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
 
-  .list-loading {
-    text-align: center;
-    padding: 40px;
-    color: var(--text3);
-    font-size: 14px;
-  }
-
-  /* ===== SUMMARY PAGE ===== */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
-  }
-
+  /* ===== SUMMARY ===== */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
   .stat-card.full { grid-column: 1 / -1; }
-
-  .stat-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 6px;
-  }
-
-  .stat-value {
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1.1;
-  }
-
+  .stat-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.1; }
   .stat-unit { font-size: 13px; font-weight: 500; color: var(--text2); margin-left: 3px; }
 
-  /* ===== DELETE LIST ===== */
-  .delete-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    gap: 10px;
-  }
-  .delete-row:last-child { border-bottom: none; }
-  .delete-row:hover { background: var(--surface2); }
-
-  .delete-row-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .delete-no {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  .delete-customer {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .delete-meta {
-    font-size: 11px;
-    color: var(--text3);
-  }
-
-  .delete-row-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--red);
-    border-radius: var(--radius-sm);
-    background: white;
-    color: var(--red);
-    font-size: 12px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s;
-    flex-shrink: 0;
-  }
-  .delete-row-btn:hover { background: var(--red); color: white; }
-
-  /* ===== GOAL SECTION ===== */
   .goal-section { margin-bottom: 16px; }
-
-  .goal-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 10px;
-    box-shadow: var(--shadow);
-  }
-
-  .goal-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-
-  .goal-card-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .goal-badge {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-  }
-
+  .goal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .goal-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .goal-card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .goal-badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
   .goal-badge.achieved { background: var(--green-light); color: var(--green); }
   .goal-badge.progress { background: var(--yellow-light); color: var(--yellow); }
-  .goal-badge.low      { background: var(--red-light);    color: var(--red);    }
-
-  .goal-progress-bar-wrap {
-    background: var(--surface2);
-    border-radius: 99px;
-    height: 10px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-
-  .goal-progress-bar {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.6s ease;
-    min-width: 4px;
-  }
-
+  .goal-badge.low      { background: var(--red-light);    color: var(--red); }
+  .goal-progress-bar-wrap { background: var(--surface2); border-radius: 99px; height: 10px; overflow: hidden; margin-bottom: 8px; }
+  .goal-progress-bar { height: 100%; border-radius: 99px; transition: width 0.6s ease; min-width: 4px; }
   .goal-bar-green  { background: var(--green); }
   .goal-bar-yellow { background: var(--yellow); }
   .goal-bar-red    { background: var(--red); }
-
-  .goal-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text2);
-  }
-
+  .goal-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); }
   .goal-meta strong { color: var(--text); }
 
-  .goal-annual-card {
-    background: var(--accent);
-    color: white;
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 10px;
-    box-shadow: var(--shadow-md);
-  }
-
-  .goal-annual-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-
+  .goal-annual-card { background: var(--accent); color: white; border-radius: var(--radius); padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow-md); }
+  .goal-annual-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .goal-annual-title { font-size: 13px; font-weight: 700; opacity: 0.9; }
-
-  .goal-annual-badge {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.25);
-    color: white;
-  }
-
-  .goal-annual-bar-wrap {
-    background: rgba(255,255,255,0.25);
-    border-radius: 99px;
-    height: 10px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-
-  .goal-annual-bar {
-    height: 100%;
-    border-radius: 99px;
-    background: white;
-    transition: width 0.6s ease;
-    min-width: 4px;
-  }
-
-  .goal-annual-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    opacity: 0.85;
-  }
-
+  .goal-annual-badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.25); color: white; }
+  .goal-annual-bar-wrap { background: rgba(255,255,255,0.25); border-radius: 99px; height: 10px; overflow: hidden; margin-bottom: 8px; }
+  .goal-annual-bar { height: 100%; border-radius: 99px; background: white; transition: width 0.6s ease; min-width: 4px; }
+  .goal-annual-meta { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.85; }
   .goal-annual-meta strong { opacity: 1; }
 
-  .summary-table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    margin-bottom: 12px;
-  }
-
-  .summary-table-title {
-    padding: 12px 16px;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text2);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th {
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text3);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  td {
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--text);
-    border-bottom: 1px solid var(--border);
-  }
-
+  .summary-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 12px; }
+  .summary-table-title { padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text2); border-bottom: 1px solid var(--border); background: var(--surface2); text-transform: uppercase; letter-spacing: 0.04em; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text3); border-bottom: 1px solid var(--border); background: var(--surface2); text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 10px 14px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--border); }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: var(--surface2); }
-
   .td-num { text-align: right; font-weight: 600; color: var(--accent); }
 
   /* ===== MODAL ===== */
   .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 200;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 200; display: none; align-items: center;
+    justify-content: center; padding: 16px;
   }
-
   .modal-overlay.open { display: flex; }
-
   .modal {
-    background: var(--surface);
-    border-radius: var(--radius);
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background: var(--surface); border-radius: var(--radius);
+    width: 100%; max-width: 600px; max-height: 90vh;
+    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   }
-
-  .modal-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
   .modal-title { font-size: 16px; font-weight: 700; }
-  .modal-close {
-    width: 30px; height: 30px;
-    border: none; background: var(--surface2);
-    border-radius: 6px; cursor: pointer;
-    font-size: 16px; color: var(--text2);
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
+  .modal-close { width: 30px; height: 30px; border: none; background: var(--surface2); border-radius: 6px; cursor: pointer; font-size: 16px; color: var(--text2); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
   .modal-close:hover { background: var(--border); }
-
-  .modal-footer {
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-    background: var(--surface2);
-    border-radius: 0 0 var(--radius) var(--radius);
-  }
-
-  .print-btn {
-    width: 100%;
-    padding: 11px;
-    background: var(--text);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .print-btn:hover { background: #2d3240; }
-
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); background: var(--surface2); border-radius: 0 0 var(--radius) var(--radius); display: flex; flex-direction: column; gap: 8px; }
   .modal-body { padding: 20px; }
-
-  .modal-photos {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
+  .modal-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .modal-photo-wrap { position: relative; border-radius: var(--radius-sm); overflow: hidden; }
   .modal-photo-wrap img { width: 100%; height: 160px; object-fit: cover; display: block; }
-
-  .modal-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .modal-info-item { }
+  .modal-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .modal-info-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
   .modal-info-value { font-size: 14px; color: var(--text); }
+  .modal-content-text { padding: 12px; background: var(--surface2); border-radius: var(--radius-sm); font-size: 13px; color: var(--text2); line-height: 1.7; }
 
-  .modal-content-text {
-    padding: 12px;
-    background: var(--surface2);
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--text2);
-    line-height: 1.7;
+  .print-btn { width: 100%; padding: 11px; background: var(--text); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .print-btn:hover { background: #2d3240; }
+
+  /* ===== CONFIRM MODAL ===== */
+  .confirm-modal-body { padding: 24px 20px; text-align: center; }
+  .confirm-modal-icon { font-size: 40px; margin-bottom: 12px; }
+  .confirm-modal-msg { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .confirm-modal-sub { font-size: 12px; color: var(--text3); margin-bottom: 20px; }
+  .confirm-modal-btns { display: flex; gap: 10px; }
+  .confirm-ok-btn { flex: 1; padding: 12px; background: var(--red); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+  .confirm-ok-btn:hover { background: #b91c1c; }
+  .confirm-cancel-btn { flex: 1; padding: 12px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+  .confirm-cancel-btn:hover { background: var(--border); }
+
+  /* ===== PIN PAD ===== */
+  .pin-dots { display: flex; justify-content: center; gap: 16px; margin-bottom: 20px; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); transition: all 0.15s; display: block; }
+  .pin-dot.filled { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
+  .pin-dot.error  { background: var(--red);    border-color: var(--red);   animation: pinShake 0.4s ease; }
+  @keyframes pinShake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-6px); }
+    40%     { transform: translateX(6px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
   }
+  .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pin-key { height: 58px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); font-size: 20px; font-weight: 600; font-family: inherit; color: var(--text); cursor: pointer; transition: all 0.1s; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+  .pin-key:active { background: var(--accent); color: white; border-color: var(--accent); transform: scale(0.94); }
+  .pin-key-clear { font-size: 14px; font-weight: 700; color: var(--text2); background: var(--surface2); }
+  .pin-key-del   { font-size: 18px; color: var(--text2); background: var(--surface2); }
 
-  /* ===== LOADING SPINNER ===== */
-  .spinner {
-    width: 20px; height: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
+  /* ===== SETTINGS ===== */
+  .settings-input-wrap { margin-bottom: 12px; }
+  .settings-input-wrap label { font-size: 13px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 6px; }
+  .settings-input-wrap input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; }
+  .settings-input-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,111,232,0.12); }
+  .settings-save-btn { width: 100%; padding: 11px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background 0.15s; margin-top: 4px; }
+  .settings-save-btn:hover { background: var(--accent-dark); }
+
+  /* ===== DELETE LIST ===== */
+  .delete-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 10px; }
+  .delete-row:last-child { border-bottom: none; }
+  .delete-row:hover { background: var(--surface2); }
+  .delete-row-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .delete-no { font-size: 11px; font-weight: 700; color: var(--accent); }
+  .delete-customer { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .delete-meta { font-size: 11px; color: var(--text3); }
+  .delete-row-btn { padding: 6px 12px; border: 1px solid var(--red); border-radius: var(--radius-sm); background: white; color: var(--red); font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+  .delete-row-btn:hover { background: var(--red); color: white; }
+
+  /* ===== EDIT MODAL ===== */
+  .edit-modal-photo-area {
+    border: 2px dashed var(--border); border-radius: var(--radius); padding: 20px 16px;
+    text-align: center; cursor: pointer; transition: all 0.15s; background: var(--surface2);
+    position: relative; min-height: 140px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;
   }
+  .edit-modal-photo-area:hover { border-color: var(--green); background: var(--green-light); }
+  .edit-modal-photo-area.has-image { border-style: solid; border-color: var(--border); padding: 0; overflow: hidden; }
+  .edit-modal-photo-area.has-image img { width: 100%; height: 160px; object-fit: cover; display: block; }
+  .edit-photo-actions { display: flex; gap: 8px; margin-bottom: 14px; }
+  .edit-submit-btn { width: 100%; padding: 13px; background: var(--green); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .edit-submit-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .edit-submit-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
+  .existing-before-thumb { border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 10px; }
+  .existing-before-thumb img { width: 100%; height: 100px; object-fit: cover; display: block; }
+  .edit-section-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
 
+  /* ===== SPINNER ===== */
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ===== RESPONSIVE ===== */
@@ -1073,229 +503,10 @@
     .modal-photos { grid-template-columns: 1fr 1fr; }
     .modal-photo-wrap img { height: 120px; }
   }
-
-  /* ===== GAS CONFIG NOTICE ===== */
-  .config-banner {
-    background: var(--yellow-light);
-    border: 1px solid #F59E0B;
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    font-size: 12px;
-    color: var(--yellow);
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .config-banner.hidden { display: none; }
-  .config-banner strong { display: block; margin-bottom: 2px; font-size: 13px; }
-
-  .settings-link {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-size: 12px;
-    cursor: pointer;
-    text-decoration: underline;
-    font-family: inherit;
-    padding: 0;
-  }
-
-  /* Settings modal fields */
-  .settings-input-wrap { margin-bottom: 12px; }
-  .settings-input-wrap label { font-size: 13px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 6px; }
-  .settings-input-wrap input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; }
-  .settings-input-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,111,232,0.12); }
-  .settings-save-btn {
-    width: 100%; padding: 11px; background: var(--accent); color: white; border: none;
-    border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: inherit;
-    cursor: pointer; transition: background 0.15s; margin-top: 4px;
-  }
-  .settings-save-btn:hover { background: var(--accent-dark); }
-
-  .period-filter {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-
-  .period-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text2);
-    background: var(--surface);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .period-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-  .refresh-btn {
-    padding: 7px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text2);
-    background: var(--surface);
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex; align-items: center; gap: 5px;
-    margin-left: auto;
-  }
-
-  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  .list-header {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-  }
-
-  .list-count {
-    font-size: 12px;
-    color: var(--text3);
-    background: var(--surface2);
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-  }
-
-  /* ===== STATUS BADGES ===== */
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .status-badge.in-progress {
-    background: var(--yellow-light);
-    color: var(--yellow);
-    border: 1px solid #F59E0B;
-  }
-
-  .status-badge.completed {
-    background: var(--green-light);
-    color: var(--green);
-  }
-
-  /* 進行中カードの左ボーダー強調 */
-  .report-card.in-progress {
-    border-left: 3px solid var(--yellow);
-  }
-
-  .report-card.completed {
-    border-left: 3px solid var(--green);
-  }
-
-  /* アフター追加ボタン */
-  .add-after-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    padding: 10px;
-    background: var(--yellow-light);
-    border: 1px dashed #F59E0B;
-    border-radius: 0 0 var(--radius) var(--radius);
-    color: var(--yellow);
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .add-after-btn:hover {
-    background: #FDE68A;
-    border-color: var(--yellow);
-  }
-
-  /* ステータスフィルター */
-  .filter-select.status-filter { }
-
-  /* ===== EDIT MODAL ===== */
-  .edit-modal-photo-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 20px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: var(--surface2);
-    position: relative;
-    min-height: 160px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .edit-modal-photo-area:hover { border-color: var(--green); background: var(--green-light); }
-  .edit-modal-photo-area.has-image { border-style: solid; border-color: var(--border); padding: 0; overflow: hidden; }
-  .edit-modal-photo-area.has-image img { width: 100%; height: 180px; object-fit: cover; display: block; }
-
-  .edit-photo-actions {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-
-  .edit-submit-btn {
-    width: 100%;
-    padding: 13px;
-    background: var(--green);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .edit-submit-btn:hover { background: #15803D; transform: translateY(-1px); box-shadow: var(--shadow-md); }
-  .edit-submit-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; box-shadow: none; }
-
-  .existing-before-thumb {
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    margin-bottom: 10px;
-  }
-
-  .existing-before-thumb img { width: 100%; height: 120px; object-fit: cover; display: block; }
-
-  .edit-section-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 8px;
-    margin-top: 4px;
-  }
 </style>
 </head>
 <body>
 
-<!-- App Header -->
 <header class="app-header">
   <div class="logo">
     <div class="logo-icon">♻</div>
@@ -1304,16 +515,16 @@
   <button class="settings-link" onclick="openSettings()">⚙ 設定</button>
 </header>
 
-<!-- Nav Tabs -->
 <nav class="nav-tabs">
-  <button class="nav-tab active" onclick="showPage('form', this)">
-    <span class="tab-icon">✏️</span> 報告入力
+  <button class="nav-tab active" id="tab-form" onclick="showPage('form', this)">
+    <span>✏️</span> 報告入力
   </button>
-  <button class="nav-tab" onclick="showPage('list', this)">
-    <span class="tab-icon">📋</span> 一覧
+  <button class="nav-tab" id="tab-list" onclick="showPage('list', this)">
+    <span>📋</span> 一覧
+    <span class="tab-badge hidden" id="inProgressBadge">0</span>
   </button>
-  <button class="nav-tab" onclick="showPage('summary', this)">
-    <span class="tab-icon">📊</span> サマリー
+  <button class="nav-tab" id="tab-summary" onclick="showPage('summary', this)">
+    <span>📊</span> サマリー
   </button>
 </nav>
 
@@ -1331,89 +542,81 @@
       </div>
     </div>
 
-    <!-- 基本情報 -->
+    <!-- 下書きバナー -->
+    <div id="draftBanner" class="draft-banner">
+      <span>📝 下書きが保存されています</span>
+      <div class="draft-banner-btns">
+        <button class="draft-btn draft-btn-restore" onclick="restoreDraft()">復元</button>
+        <button class="draft-btn draft-btn-discard" onclick="discardDraft()">破棄</button>
+      </div>
+    </div>
+
     <div class="form-card">
       <div class="form-card-title">基本情報</div>
-
       <div class="form-group">
         <label>日時 <span class="required">*</span></label>
         <input type="date" id="reportDatetime">
       </div>
-
       <div class="form-group">
         <label>顧客名 <span class="required">*</span></label>
-        <input type="text" id="customerName" placeholder="例：山田商事">
+        <input type="text" id="customerName" placeholder="例：山田商事" oninput="saveDraftDebounced()">
       </div>
-
       <div class="form-group">
         <label>部署名 <span class="required">*</span></label>
-        <select id="unitName">
+        <select id="unitName" onchange="saveDraftDebounced()">
           <option value="">選択してください</option>
-          <option value="ユニット2">ユニット2</option>
-          <option value="ユニット3">ユニット3</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>改善担当者 <span class="required">*</span></label>
-        <select id="staffName">
+        <select id="staffName" onchange="saveDraftDebounced()">
           <option value="">選択してください</option>
         </select>
       </div>
     </div>
 
-    <!-- 改善内容 -->
     <div class="form-card">
       <div class="form-card-title">改善内容</div>
-
       <div class="form-group">
         <label>改善内容の説明</label>
-        <textarea id="improvement" placeholder="どのような改善を行ったか記述してください"></textarea>
+        <textarea id="improvement" placeholder="どのような改善を行ったか記述してください" oninput="saveDraftDebounced()"></textarea>
       </div>
     </div>
 
-    <!-- 写真 -->
     <div class="form-card">
       <div class="form-card-title">ビフォーアフター写真</div>
       <div class="photo-grid">
-
-        <!-- Before -->
         <div>
-          <div id="beforeDropzone" class="photo-upload-area" onclick="triggerPhotoInput('before', 'file')">
+          <div id="beforeDropzone" class="photo-upload-area" onclick="triggerPhotoInput('before','file')">
             <div class="upload-icon">📷</div>
             <div class="photo-label before">BEFORE</div>
             <div class="upload-text">タップして選択</div>
           </div>
           <div class="photo-actions">
-            <button class="photo-btn" onclick="triggerPhotoInput('before', 'camera')">📸 カメラ</button>
-            <button class="photo-btn" onclick="triggerPhotoInput('before', 'file')">🖼 ファイル</button>
+            <button class="photo-btn" onclick="triggerPhotoInput('before','camera')">📸 カメラ</button>
+            <button class="photo-btn" onclick="triggerPhotoInput('before','file')">🖼 ファイル</button>
           </div>
-          <input type="file" id="beforeFileInput" accept="image/*" style="display:none" onchange="handlePhoto(this, 'before')">
-          <input type="file" id="beforeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this, 'before')">
+          <input type="file" id="beforeFileInput"   accept="image/*" style="display:none" onchange="handlePhoto(this,'before')">
+          <input type="file" id="beforeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'before')">
         </div>
-
-        <!-- After -->
         <div>
-          <div id="afterDropzone" class="photo-upload-area" onclick="triggerPhotoInput('after', 'file')">
+          <div id="afterDropzone" class="photo-upload-area" onclick="triggerPhotoInput('after','file')">
             <div class="upload-icon">📷</div>
             <div class="photo-label after">AFTER</div>
             <div class="upload-text">タップして選択</div>
           </div>
           <div class="photo-actions">
-            <button class="photo-btn" onclick="triggerPhotoInput('after', 'camera')">📸 カメラ</button>
-            <button class="photo-btn" onclick="triggerPhotoInput('after', 'file')">🖼 ファイル</button>
+            <button class="photo-btn" onclick="triggerPhotoInput('after','camera')">📸 カメラ</button>
+            <button class="photo-btn" onclick="triggerPhotoInput('after','file')">🖼 ファイル</button>
           </div>
-          <input type="file" id="afterFileInput" accept="image/*" style="display:none" onchange="handlePhoto(this, 'after')">
-          <input type="file" id="afterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this, 'after')">
+          <input type="file" id="afterFileInput"   accept="image/*" style="display:none" onchange="handlePhoto(this,'after')">
+          <input type="file" id="afterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'after')">
         </div>
       </div>
     </div>
 
-    <!-- 削減効果 -->
     <div class="form-card">
       <div class="form-card-title">削減効果 <span style="font-weight:400;color:var(--text3);font-size:11px;text-transform:none;letter-spacing:0;">（任意・該当するものにチェック）</span></div>
-
-      <!-- 削減時間 -->
       <div class="reduction-item" id="timeItem">
         <div class="reduction-check-row" onclick="toggleReduction('time')">
           <div class="reduction-checkbox" id="timeCheck">✓</div>
@@ -1421,14 +624,12 @@
           <span class="reduction-check-hint">時間/月</span>
         </div>
         <div class="reduction-input-wrap">
-          <div class="unit-label" style="margin-top:0;">
-            <input type="number" id="reductionTime" placeholder="例：2" min="0" step="0.5">
+          <div class="unit-label">
+            <input type="number" id="reductionTime" placeholder="例：2" min="0" step="0.5" oninput="saveDraftDebounced()">
             <span class="unit-suffix">時間/月</span>
           </div>
         </div>
       </div>
-
-      <!-- 削減費用 -->
       <div class="reduction-item" id="costItem">
         <div class="reduction-check-row" onclick="toggleReduction('cost')">
           <div class="reduction-checkbox" id="costCheck">✓</div>
@@ -1436,8 +637,8 @@
           <span class="reduction-check-hint">円/月</span>
         </div>
         <div class="reduction-input-wrap">
-          <div class="unit-label" style="margin-top:0;">
-            <input type="number" id="reductionCost" placeholder="例：5000" min="0" step="100">
+          <div class="unit-label">
+            <input type="number" id="reductionCost" placeholder="例：5000" min="0" step="100" oninput="saveDraftDebounced()">
             <span class="unit-suffix">円/月</span>
           </div>
         </div>
@@ -1451,16 +652,14 @@
 
   <!-- ===== LIST PAGE ===== -->
   <div id="page-list" class="page">
-
     <div class="list-header">
-      <div class="period-filter" style="margin-bottom:0; flex:1;">
-        <button class="period-btn active" onclick="setPeriod('all', this)">全件</button>
-        <button class="period-btn" onclick="setPeriod('month', this)">今月</button>
-        <button class="period-btn" onclick="setPeriod('week', this)">今週</button>
+      <div class="period-filter">
+        <button class="period-btn active" id="periodAll"   onclick="setPeriod('all',this)">全件</button>
+        <button class="period-btn"        id="periodMonth" onclick="setPeriod('month',this)">今月</button>
+        <button class="period-btn"        id="periodWeek"  onclick="setPeriod('week',this)">今週</button>
       </div>
       <button class="refresh-btn" onclick="loadReports()">🔄 更新</button>
     </div>
-
     <div class="list-filters">
       <select class="filter-select" id="filterStatus" onchange="applyFilters()">
         <option value="">状態: 全件</option>
@@ -1469,8 +668,6 @@
       </select>
       <select class="filter-select" id="filterUnit" onchange="applyFilters()">
         <option value="">部署: 全件</option>
-        <option value="ユニット2">ユニット2</option>
-        <option value="ユニット3">ユニット3</option>
       </select>
       <select class="filter-select" id="filterStaff" onchange="applyFilters()">
         <option value="">担当者: 全員</option>
@@ -1479,25 +676,19 @@
         <option value="">顧客: 全件</option>
       </select>
     </div>
-
-    <div style="display:flex; align-items:center; margin-bottom:12px;">
+    <div style="display:flex;align-items:center;margin-bottom:12px;">
       <span id="listCount" class="list-count">0 件</span>
     </div>
-
-    <div id="reportList">
-      <div class="list-loading">読み込み中...</div>
-    </div>
+    <div id="reportList"><div class="list-loading">読み込み中...</div></div>
   </div>
 
   <!-- ===== SUMMARY PAGE ===== -->
   <div id="page-summary" class="page">
-
-    <div class="period-filter">
-      <button class="period-btn active" onclick="setSummaryPeriod('all', this)">全期間</button>
-      <button class="period-btn" onclick="setSummaryPeriod('month', this)">今月</button>
-      <button class="period-btn" onclick="setSummaryPeriod('year', this)">今年</button>
+    <div class="period-filter" style="margin-bottom:12px;">
+      <button class="period-btn active" onclick="setSummaryPeriod('all',this)">全期間</button>
+      <button class="period-btn"        onclick="setSummaryPeriod('month',this)">今月</button>
+      <button class="period-btn"        onclick="setSummaryPeriod('year',this)">今年</button>
     </div>
-
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">改善件数</div>
@@ -1512,32 +703,21 @@
         <div class="stat-value" id="statCost">—<span class="stat-unit">円</span></div>
       </div>
     </div>
-
-    <!-- 目標達成率 -->
     <div class="goal-section" id="goalSection"></div>
-
     <div class="summary-table-wrap">
       <div class="summary-table-title">部署別 集計</div>
       <table>
-        <thead>
-          <tr>
-            <th>部署</th>
-            <th>件数</th>
-            <th>削減時間</th>
-            <th>削減費用</th>
-          </tr>
-        </thead>
+        <thead><tr><th>部署</th><th>件数</th><th>削減時間</th><th>削減費用</th></tr></thead>
         <tbody id="unitTable">
           <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px;">データなし</td></tr>
         </tbody>
       </table>
     </div>
   </div>
-
 </main>
 
 <!-- ===== DETAIL MODAL ===== -->
-<div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">改善報告詳細</div>
@@ -1548,13 +728,49 @@
       <div class="modal-info-grid" id="modalInfo"></div>
       <div id="modalContent"></div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" id="detailModalFooter">
       <button class="print-btn" onclick="printReport()">🖨️ 印刷・PDF保存</button>
     </div>
   </div>
 </div>
 
-<!-- ===== PASSWORD MODAL ===== -->
+<!-- ===== EDIT MODAL ===== -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeEditModalEl()">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="editModalTitle">✏️ アフター写真を追加</div>
+      <button class="modal-close" onclick="closeEditModalEl()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="editBeforeSection" style="display:none;margin-bottom:16px;">
+        <div class="edit-section-label">📷 BEFORE（登録済み）</div>
+        <div class="existing-before-thumb"><img id="editBeforeThumb" src="" alt="Before"></div>
+      </div>
+      <div class="edit-section-label">📸 AFTER（追加する写真）</div>
+      <div id="editAfterDropzone" class="edit-modal-photo-area" onclick="triggerEditPhoto('file')">
+        <div class="upload-icon">📷</div>
+        <div class="photo-label after">AFTER</div>
+        <div class="upload-text">タップして写真を選択</div>
+      </div>
+      <div class="edit-photo-actions">
+        <button class="photo-btn" onclick="triggerEditPhoto('camera')">📸 カメラで撮影</button>
+        <button class="photo-btn" onclick="triggerEditPhoto('file')">🖼 ファイルを選択</button>
+      </div>
+      <input type="file" id="editAfterFileInput"   accept="image/*" style="display:none" onchange="handleEditPhoto(this)">
+      <input type="file" id="editAfterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleEditPhoto(this)">
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;">改善内容の追記（任意）</label>
+        <textarea id="editImprovementAppend" placeholder="完了時のコメントなど..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+      <button class="edit-submit-btn" id="editSubmitBtn" onclick="submitEditReport()">
+        <span id="editSubmitText">✅ アフター写真を登録して完了にする</span>
+      </button>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;">※ ステータスが「進行中」→「完了」に更新されます</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PIN MODAL ===== -->
 <div class="modal-overlay" id="pwModal" onclick="if(event.target===this)pwModalClose()">
   <div class="modal" style="max-width:300px;">
     <div class="modal-header">
@@ -1562,17 +778,11 @@
       <button class="modal-close" onclick="pwModalClose()">✕</button>
     </div>
     <div class="modal-body" style="padding:20px 20px 24px;">
-
-      <!-- 入力インジケーター（●で桁数表示） -->
       <div class="pin-dots" id="pinDots">
-        <span class="pin-dot" id="dot0"></span>
-        <span class="pin-dot" id="dot1"></span>
-        <span class="pin-dot" id="dot2"></span>
-        <span class="pin-dot" id="dot3"></span>
+        <span class="pin-dot" id="dot0"></span><span class="pin-dot" id="dot1"></span>
+        <span class="pin-dot" id="dot2"></span><span class="pin-dot" id="dot3"></span>
       </div>
       <p id="pwError" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;text-align:center;font-weight:600;">パスワードが違います</p>
-
-      <!-- テンキー -->
       <div class="pin-keypad">
         <button class="pin-key" onclick="pinInput('1')">1</button>
         <button class="pin-key" onclick="pinInput('2')">2</button>
@@ -1592,11 +802,11 @@
 </div>
 
 <!-- ===== SETTINGS MODAL ===== -->
-<div class="modal-overlay" id="settingsModal" onclick="closeSettingsModal(event)">
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeModal('settingsModal')">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">⚙ アプリ設定</div>
-      <button class="modal-close" onclick="document.getElementById('settingsModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
     </div>
     <div class="modal-body">
       <div class="settings-input-wrap">
@@ -1604,8 +814,12 @@
         <input type="text" id="settingsGasUrl" placeholder="https://script.google.com/macros/s/...">
       </div>
       <div class="settings-input-wrap">
-        <label>担当者リスト（改行区切りで入力）</label>
-        <textarea id="settingsStaffList" style="width:100%;height:120px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;" placeholder="田中 太郎&#10;佐藤 花子&#10;鈴木 一郎"></textarea>
+        <label>担当者リスト（改行区切り）</label>
+        <textarea id="settingsStaffList" style="width:100%;height:120px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;" placeholder="田中 太郎&#10;佐藤 花子"></textarea>
+      </div>
+      <div class="settings-input-wrap">
+        <label>部署リスト（改行区切り）</label>
+        <textarea id="settingsUnitList" style="width:100%;height:80px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;" placeholder="ユニット2&#10;ユニット3"></textarea>
       </div>
       <div style="border-top:1px solid var(--border);margin:16px 0 14px;"></div>
       <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">目標設定</p>
@@ -1633,58 +847,12 @@
   </div>
 </div>
 
-<!-- ===== EDIT (AFTER PHOTO) MODAL ===== -->
-<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
-  <div class="modal" style="max-width:480px;">
-    <div class="modal-header">
-      <div class="modal-title" id="editModalTitle">✏️ アフター写真を追加</div>
-      <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <!-- 既存のビフォー写真（参考表示） -->
-      <div id="editBeforeSection" style="display:none; margin-bottom:16px;">
-        <div class="edit-section-label">📷 BEFORE（登録済み）</div>
-        <div class="existing-before-thumb">
-          <img id="editBeforeThumb" src="" alt="Before">
-        </div>
-      </div>
-
-      <!-- アフター写真アップロード -->
-      <div class="edit-section-label">📸 AFTER（追加する写真）</div>
-      <div id="editAfterDropzone" class="edit-modal-photo-area" onclick="triggerEditPhoto('file')">
-        <div class="upload-icon">📷</div>
-        <div class="photo-label after">AFTER</div>
-        <div class="upload-text">タップして写真を選択</div>
-      </div>
-      <div class="edit-photo-actions">
-        <button class="photo-btn" onclick="triggerEditPhoto('camera')">📸 カメラで撮影</button>
-        <button class="photo-btn" onclick="triggerEditPhoto('file')">🖼 ファイルを選択</button>
-      </div>
-      <input type="file" id="editAfterFileInput" accept="image/*" style="display:none" onchange="handleEditPhoto(this)">
-      <input type="file" id="editAfterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleEditPhoto(this)">
-
-      <!-- 改善内容の追記（任意） -->
-      <div style="margin-bottom:14px;">
-        <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;">改善内容の追記（任意）</label>
-        <textarea id="editImprovementAppend" placeholder="完了時のコメントなど..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
-      </div>
-
-      <button class="edit-submit-btn" id="editSubmitBtn" onclick="submitEditReport()">
-        <span id="editSubmitText">✅ アフター写真を登録して完了にする</span>
-      </button>
-
-      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;">※ ステータスが「進行中」→「完了」に更新されます</p>
-    </div>
-  </div>
-</div>
-
 <!-- ===== DELETE MODAL ===== -->
-<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)closeModal('deleteModal')">
   <div class="modal" style="max-width:600px;">
     <div class="modal-header">
       <div class="modal-title">🗑 報告の削除管理</div>
-      <button class="modal-close" onclick="document.getElementById('deleteModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
     </div>
     <div class="modal-body" style="padding:0;">
       <div id="deleteList" style="max-height:60vh;overflow-y:auto;"></div>
@@ -1692,63 +860,87 @@
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ===== CONFIRM MODAL ===== -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:320px;">
+    <div class="confirm-modal-body">
+      <div class="confirm-modal-icon" id="confirmIcon">🗑</div>
+      <div class="confirm-modal-msg"  id="confirmMsg">削除しますか？</div>
+      <div class="confirm-modal-sub"  id="confirmSub">この操作は取り消せません</div>
+      <div class="confirm-modal-btns">
+        <button class="confirm-cancel-btn" onclick="resolveConfirm(false)">キャンセル</button>
+        <button class="confirm-ok-btn"     onclick="resolveConfirm(true)">削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== CONFIG =====
-const STORAGE_KEY_GAS_URL = 'kaizen_gas_url';
-const STORAGE_KEY_STAFF = 'kaizen_staff';
+// ================================================================
+// CONFIG
+// ================================================================
+const GAS_URL_KEY   = 'kaizen_gas_url';
+const DRAFT_KEY     = 'kaizen_draft';
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw3x_oa9bvka9SlpuKDZ5U1YU7xKVMLY1u6QLpLv1NXXIalIYfR1p0Dxappb3E6WvdK/exec';
+// PINはGASに保存されたハッシュと照合するため、ここには平文を持たない
+// フォールバックとして localStorage に保存したハッシュを使う
+const PIN_HASH_KEY  = 'kaizen_pin_hash';
 
 let allReports = [];
 let filteredReports = [];
 let currentPeriod = 'all';
 let currentSummaryPeriod = 'all';
+let _unitList = [];
 
-// ===== INIT =====
-document.addEventListener('DOMContentLoaded', () => {
+// ================================================================
+// INIT
+// ================================================================
+document.addEventListener('DOMContentLoaded', async () => {
   setDefaultDatetime();
-  loadSettings().then(() => checkConfig());
+  await loadSettings();
+  checkConfig();
+  checkDraft();
 });
 
 function setDefaultDatetime() {
-  const now = new Date();
+  const now   = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  document.getElementById('reportDatetime').value = local.toISOString().slice(0, 10);
+  document.getElementById('reportDatetime').value = local.toISOString().slice(0,10);
 }
 
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw3x_oa9bvka9SlpuKDZ5U1YU7xKVMLY1u6QLpLv1NXXIalIYfR1p0Dxappb3E6WvdK/exec';
-const SETTINGS_PASSWORD = '3150';
-
+// ================================================================
+// SETTINGS
+// ================================================================
 async function loadSettings() {
-  // GAS URLが未設定の場合はデフォルト値を自動セット
-  if (!localStorage.getItem(STORAGE_KEY_GAS_URL)) {
-    localStorage.setItem(STORAGE_KEY_GAS_URL, DEFAULT_GAS_URL);
-  }
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  if (!localStorage.getItem(GAS_URL_KEY))
+    localStorage.setItem(GAS_URL_KEY, DEFAULT_GAS_URL);
+
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   document.getElementById('settingsGasUrl').value = gasUrl;
-
-  // GASから設定を取得
   if (!gasUrl) return;
+
   try {
-    const res = await fetch(`${gasUrl}?action=getSettings`);
+    const res  = await fetch(`${gasUrl}?action=getSettings`);
     const data = await res.json();
-    if (data.status === 'ok') {
-      const staffList = data.staffList || [];
-      window._remoteSettings = data;
+    if (data.status !== 'ok') return;
 
-      // 設定画面に反映
-      document.getElementById('settingsStaffList').value = staffList.join('\n');
-      document.getElementById('settingsMonthlyGoal').value = data.monthlyGoal ?? 4;
-      document.getElementById('settingsAnnualGoal').value  = data.annualGoal  ?? 100;
+    const staffList = data.staffList || [];
+    const unitList  = data.unitList  || [];
+    _unitList = unitList;
 
-      // ドロップダウン更新
-      populateStaffDropdown(staffList);
+    document.getElementById('settingsStaffList').value   = staffList.join('\n');
+    document.getElementById('settingsUnitList').value    = unitList.join('\n');
+    document.getElementById('settingsMonthlyGoal').value = data.monthlyGoal ?? 4;
+    document.getElementById('settingsAnnualGoal').value  = data.annualGoal  ?? 100;
 
-      // サマリー用目標値を上書き
-      window._monthlyGoal = parseInt(data.monthlyGoal) || 4;
-      window._annualGoal  = parseInt(data.annualGoal)  || 100;
-    }
+    // PINハッシュをローカルに保存（オフライン時フォールバック用）
+    if (data.pinHash) localStorage.setItem(PIN_HASH_KEY, data.pinHash);
+
+    populateDropdowns(staffList, unitList);
+    window._monthlyGoal = parseInt(data.monthlyGoal) || 4;
+    window._annualGoal  = parseInt(data.annualGoal)  || 100;
   } catch(e) {
     console.warn('設定取得失敗:', e.message);
   }
@@ -1757,31 +949,31 @@ async function loadSettings() {
 async function saveSettings() {
   const gasUrl      = document.getElementById('settingsGasUrl').value.trim();
   const staffRaw    = document.getElementById('settingsStaffList').value.trim();
-  const monthlyGoal = document.getElementById('settingsMonthlyGoal').value.trim();
-  const annualGoal  = document.getElementById('settingsAnnualGoal').value.trim();
+  const unitRaw     = document.getElementById('settingsUnitList').value.trim();
+  const monthlyGoal = document.getElementById('settingsMonthlyGoal').value;
+  const annualGoal  = document.getElementById('settingsAnnualGoal').value;
 
   if (!gasUrl) { showToast('GAS URLを入力してください', 'error'); return; }
-
-  localStorage.setItem(STORAGE_KEY_GAS_URL, gasUrl);
+  localStorage.setItem(GAS_URL_KEY, gasUrl);
 
   try {
-    const payload = {
-      action: 'saveSettings',
-      staffList:    staffRaw.split('\n').map(s => s.trim()).filter(Boolean),
-      monthlyGoal:  parseInt(monthlyGoal) || 4,
-      annualGoal:   parseInt(annualGoal)  || 100,
-    };
     const res = await fetch(gasUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        action: 'saveSettings',
+        staffList:    staffRaw.split('\n').map(s=>s.trim()).filter(Boolean),
+        unitList:     unitRaw.split('\n').map(s=>s.trim()).filter(Boolean),
+        monthlyGoal:  parseInt(monthlyGoal) || 4,
+        annualGoal:   parseInt(annualGoal)  || 100,
+      }),
     });
     const result = await res.json();
     if (result.status !== 'ok') throw new Error(result.message);
 
     await loadSettings();
     checkConfig();
-    document.getElementById('settingsModal').classList.remove('open');
+    closeModal('settingsModal');
     showToast('設定を保存しました', 'success');
   } catch(e) {
     showToast('保存に失敗しました: ' + e.message, 'error');
@@ -1789,149 +981,233 @@ async function saveSettings() {
 }
 
 function checkConfig() {
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
-  const banner = document.getElementById('configBanner');
-  if (gasUrl) {
-    banner.classList.add('hidden');
-  } else {
-    banner.classList.remove('hidden');
-  }
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+  document.getElementById('configBanner').classList.toggle('hidden', !!gasUrl);
 }
 
-function populateStaffDropdown(staffList) {
-  const selects = [
-    document.getElementById('staffName'),
-    document.getElementById('filterStaff')
-  ];
-
-  selects.forEach((sel, i) => {
-    const currentVal = sel.value;
-    sel.innerHTML = i === 0
+function populateDropdowns(staffList, unitList) {
+  // 担当者
+  ['staffName','filterStaff'].forEach((id,i) => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = i===0
       ? '<option value="">選択してください</option>'
       : '<option value="">担当者: 全員</option>';
-    staffList.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.trim();
-      opt.textContent = s.trim();
-      sel.appendChild(opt);
-    });
-    if (currentVal) sel.value = currentVal;
+    staffList.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+    if (cur) sel.value = cur;
+  });
+
+  // 部署
+  ['unitName','filterUnit'].forEach((id,i) => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = i===0
+      ? '<option value="">選択してください</option>'
+      : '<option value="">部署: 全件</option>';
+    unitList.forEach(u => { const o=document.createElement('option'); o.value=u; o.textContent=u; sel.appendChild(o); });
+    if (cur) sel.value = cur;
   });
 }
 
-// ===== PAGE NAV =====
+// ================================================================
+// PAGE NAV
+// ================================================================
 function showPage(page, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('page-'+page).classList.add('active');
   btn.classList.add('active');
-
-  if (page === 'list') loadReports();
-  if (page === 'summary') loadSummary();
+  if (page==='list')    loadReports();
+  if (page==='summary') loadSummary();
 }
 
-// ===== PHOTO HANDLING =====
+// ================================================================
+// DRAFT (下書き自動保存)  ※ 写真はサイズが大きいので除外
+// ================================================================
+let _draftTimer = null;
+function saveDraftDebounced() {
+  clearTimeout(_draftTimer);
+  _draftTimer = setTimeout(saveDraft, 800);
+}
+
+function saveDraft() {
+  const draft = {
+    datetime:     document.getElementById('reportDatetime').value,
+    customer:     document.getElementById('customerName').value,
+    unit:         document.getElementById('unitName').value,
+    staff:        document.getElementById('staffName').value,
+    improvement:  document.getElementById('improvement').value,
+    reductionTime:document.getElementById('reductionTime').value,
+    reductionCost:document.getElementById('reductionCost').value,
+    timeActive:   document.getElementById('timeItem').classList.contains('active'),
+    costActive:   document.getElementById('costItem').classList.contains('active'),
+  };
+  const hasContent = draft.customer || draft.improvement || draft.reductionTime || draft.reductionCost;
+  if (hasContent) {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }
+}
+
+function checkDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    const hasContent = d.customer || d.improvement;
+    if (hasContent) document.getElementById('draftBanner').classList.add('show');
+  } catch(e) {}
+}
+
+function restoreDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if (d.datetime)     document.getElementById('reportDatetime').value = d.datetime;
+    if (d.customer)     document.getElementById('customerName').value   = d.customer;
+    if (d.unit)         document.getElementById('unitName').value        = d.unit;
+    if (d.staff)        document.getElementById('staffName').value       = d.staff;
+    if (d.improvement)  document.getElementById('improvement').value     = d.improvement;
+    if (d.reductionTime){ document.getElementById('reductionTime').value = d.reductionTime; }
+    if (d.reductionCost){ document.getElementById('reductionCost').value = d.reductionCost; }
+    if (d.timeActive)   document.getElementById('timeItem').classList.add('active');
+    if (d.costActive)   document.getElementById('costItem').classList.add('active');
+    document.getElementById('draftBanner').classList.remove('show');
+    showToast('下書きを復元しました', 'success');
+  } catch(e) {}
+}
+
+function discardDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  document.getElementById('draftBanner').classList.remove('show');
+  showToast('下書きを破棄しました');
+}
+
+// ================================================================
+// PHOTO — Canvas リサイズ (最大1200px / 品質0.82)
+// ================================================================
 const photoData = { before: null, after: null };
+const MAX_PX = 1200;
+const QUALITY = 0.82;
 
 function triggerPhotoInput(type, mode) {
-  const id = mode === 'camera' ? `${type}CameraInput` : `${type}FileInput`;
-  document.getElementById(id).click();
+  document.getElementById(mode==='camera' ? `${type}CameraInput` : `${type}FileInput`).click();
 }
 
 function handlePhoto(input, type) {
   const file = input.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = e => {
-    photoData[type] = e.target.result; // base64
-    const dz = document.getElementById(`${type}Dropzone`);
+  const dz = document.getElementById(`${type}Dropzone`);
+  // リサイズ中インジケーター表示
+  dz.innerHTML = '<div class="photo-resizing"><span class="spinner" style="border-top-color:var(--accent);border-color:var(--border);"></span> 処理中...</div>';
+
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    let w = img.naturalWidth, h = img.naturalHeight;
+    if (w > MAX_PX || h > MAX_PX) {
+      if (w > h) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+      else       { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const b64 = canvas.toDataURL('image/jpeg', QUALITY);
+    photoData[type] = b64;
     dz.classList.add('has-image');
     dz.innerHTML = `
-      <img src="${e.target.result}" alt="${type}">
+      <img src="${b64}" alt="${type}">
       <span class="photo-badge ${type}">${type.toUpperCase()}</span>
-      <button class="photo-remove" onclick="removePhoto('${type}', event)">✕</button>
-    `;
+      <button class="photo-remove" onclick="removePhoto('${type}',event)">✕</button>`;
+    saveDraftDebounced();
   };
-  reader.readAsDataURL(file);
+  img.onerror = () => { showToast('画像の読み込みに失敗しました', 'error'); };
+  img.src = url;
   input.value = '';
 }
 
 function removePhoto(type, e) {
-  e.stopPropagation();
+  e && e.stopPropagation();
   photoData[type] = null;
   const dz = document.getElementById(`${type}Dropzone`);
   dz.classList.remove('has-image');
-  const label = type === 'before' ? '<div class="photo-label before">BEFORE</div>' : '<div class="photo-label after">AFTER</div>';
+  const label = type==='before'
+    ? '<div class="photo-label before">BEFORE</div>'
+    : '<div class="photo-label after">AFTER</div>';
   dz.innerHTML = `<div class="upload-icon">📷</div>${label}<div class="upload-text">タップして選択</div>`;
   dz.onclick = () => triggerPhotoInput(type, 'file');
 }
 
-// ===== REDUCTION TOGGLE =====
+// ================================================================
+// REDUCTION TOGGLE
+// ================================================================
 function toggleReduction(type) {
-  const item  = document.getElementById(type === 'time' ? 'timeItem' : 'costItem');
-  const input = document.getElementById(type === 'time' ? 'reductionTime' : 'reductionCost');
-  const isActive = item.classList.toggle('active');
-  if (!isActive) input.value = '';
+  const item  = document.getElementById(type==='time' ? 'timeItem' : 'costItem');
+  const input = document.getElementById(type==='time' ? 'reductionTime' : 'reductionCost');
+  const on = item.classList.toggle('active');
+  if (!on) input.value = '';
   else setTimeout(() => input.focus(), 250);
 }
 
-// ===== SUBMIT =====
+// ================================================================
+// SUBMIT
+// ================================================================
 async function submitReport() {
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   if (!gasUrl) { showToast('GAS URLを設定してください', 'error'); openSettings(); return; }
 
-  const datetime = document.getElementById('reportDatetime').value;
-  const customer = document.getElementById('customerName').value.trim();
-  const unit = document.getElementById('unitName').value;
-  const staff = document.getElementById('staffName').value;
+  const datetime    = document.getElementById('reportDatetime').value;
+  const customer    = document.getElementById('customerName').value.trim();
+  const unit        = document.getElementById('unitName').value;
+  const staff       = document.getElementById('staffName').value;
   const improvement = document.getElementById('improvement').value.trim();
   const reductionTime = document.getElementById('reductionTime').value;
   const reductionCost = document.getElementById('reductionCost').value;
 
-  if (!datetime) { showToast('日時を入力してください', 'error'); return; }
-  if (!customer) { showToast('顧客名を入力してください', 'error'); return; }
-  if (!unit) { showToast('部署名を選択してください', 'error'); return; }
-  if (!staff) { showToast('担当者を選択してください', 'error'); return; }
+  if (!datetime)  { showToast('日時を入力してください', 'error'); return; }
+  if (!customer)  { showToast('顧客名を入力してください', 'error'); return; }
+  if (!unit)      { showToast('部署名を選択してください', 'error'); return; }
+  if (!staff)     { showToast('担当者を選択してください', 'error'); return; }
 
   const btn = document.getElementById('submitBtn');
   const txt = document.getElementById('submitText');
   btn.disabled = true;
   txt.innerHTML = '<span class="spinner"></span> 送信中...';
 
-  // アフター写真があれば完了、なければ進行中
-  const reportStatus = photoData.after ? 'completed' : 'in-progress';
-
-  const payload = {
-    action: 'addReport',
-    datetime,
-    customer,
-    unit,
-    staff,
-    improvement,
-    reductionTime: reductionTime || '',
-    reductionCost: reductionCost || '',
-    beforePhoto: photoData.before || '',
-    afterPhoto: photoData.after || '',
-    status: reportStatus,
-  };
+  const status = photoData.after ? 'completed' : 'in-progress';
 
   try {
     const res = await fetch(gasUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        action: 'addReport',
+        datetime, customer, unit, staff, improvement,
+        reductionTime: reductionTime || '',
+        reductionCost: reductionCost || '',
+        beforePhoto: photoData.before || '',
+        afterPhoto:  photoData.after  || '',
+        status,
+      }),
     });
     const result = await res.json();
+    if (result.status !== 'ok') throw new Error(result.message || '送信エラー');
 
-    if (result.status === 'ok') {
-      showToast('報告を送信しました！', 'success');
-      resetForm();
-    } else {
-      throw new Error(result.message || '送信エラー');
-    }
-  } catch (err) {
+    showToast('報告を送信しました！', 'success');
+    localStorage.removeItem(DRAFT_KEY);
+    resetForm();
+    // 送信後に一覧タブへ自動遷移
+    setTimeout(() => {
+      const listTab = document.getElementById('tab-list');
+      showPage('list', listTab);
+    }, 800);
+  } catch(err) {
     showToast('送信に失敗しました: ' + err.message, 'error');
+    // 失敗時は下書き保存
+    saveDraft();
+    showToast('入力内容を下書き保存しました', '');
   } finally {
     btn.disabled = false;
     txt.innerHTML = '📤 報告を送信';
@@ -1940,96 +1216,100 @@ async function submitReport() {
 
 function resetForm() {
   setDefaultDatetime();
-  document.getElementById('customerName').value = '';
-  document.getElementById('unitName').value = '';
+  ['customerName','improvement','reductionTime','reductionCost'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('unitName').value  = '';
   document.getElementById('staffName').value = '';
-  document.getElementById('improvement').value = '';
-  document.getElementById('reductionTime').value = '';
-  document.getElementById('reductionCost').value = '';
   document.getElementById('timeItem').classList.remove('active');
   document.getElementById('costItem').classList.remove('active');
-  removePhoto('before', { stopPropagation: () => {} });
-  removePhoto('after', { stopPropagation: () => {} });
+  removePhoto('before');
+  removePhoto('after');
+  document.getElementById('draftBanner').classList.remove('show');
 }
 
-// ===== LOAD REPORTS =====
+// ================================================================
+// LOAD REPORTS
+// ================================================================
 async function loadReports() {
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   if (!gasUrl) {
-    document.getElementById('reportList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚙️</div><p>GAS URLを設定してください</p></div>';
+    document.getElementById('reportList').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚙️</div><p>GAS URLを設定してください</p></div>';
     return;
   }
-
   document.getElementById('reportList').innerHTML = '<div class="list-loading">読み込み中...</div>';
-
   try {
-    const res = await fetch(`${gasUrl}?action=getReports`);
+    const res  = await fetch(`${gasUrl}?action=getReports`);
     const data = await res.json();
-    allReports = (data.reports || []).map((r, i, arr) => ({
-      ...r,
-      no: arr.length - i  // 新しい順に表示するため逆順番号
-    }));
+    allReports = (data.reports || []).map((r,i,arr) => ({ ...r, no: arr.length - i }));
     populateFilterOptions();
     applyFilters();
-  } catch (err) {
-    document.getElementById('reportList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>データの読み込みに失敗しました</p></div>';
+    updateInProgressBadge();
+  } catch(err) {
+    document.getElementById('reportList').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠️</div><p>データの読み込みに失敗しました</p></div>';
   }
+}
+
+function updateInProgressBadge() {
+  const count = allReports.filter(r => (r.status||'completed') === 'in-progress').length;
+  const badge = document.getElementById('inProgressBadge');
+  badge.textContent = count;
+  badge.classList.toggle('hidden', count === 0);
 }
 
 function populateFilterOptions() {
-  const staffSet = [...new Set(allReports.map(r => r.staff).filter(Boolean))];
-  const customerSet = [...new Set(allReports.map(r => r.customer).filter(Boolean))];
+  const staffSet    = [...new Set(allReports.map(r=>r.staff).filter(Boolean))];
+  const customerSet = [...new Set(allReports.map(r=>r.customer).filter(Boolean))];
+  const unitSet     = [...new Set(allReports.map(r=>r.unit).filter(Boolean))];
 
-  const filterStaff = document.getElementById('filterStaff');
-  const filterCustomer = document.getElementById('filterCustomer');
-  const currentStaff = filterStaff.value;
-  const currentCustomer = filterCustomer.value;
+  const fStaff    = document.getElementById('filterStaff');
+  const fCustomer = document.getElementById('filterCustomer');
+  const fUnit     = document.getElementById('filterUnit');
+  const curS = fStaff.value, curC = fCustomer.value, curU = fUnit.value;
 
-  filterStaff.innerHTML = '<option value="">担当者: 全員</option>';
-  staffSet.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; filterStaff.appendChild(o); });
+  fStaff.innerHTML = '<option value="">担当者: 全員</option>';
+  staffSet.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; fStaff.appendChild(o); });
 
-  filterCustomer.innerHTML = '<option value="">顧客: 全件</option>';
-  customerSet.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; filterCustomer.appendChild(o); });
+  fCustomer.innerHTML = '<option value="">顧客: 全件</option>';
+  customerSet.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; fCustomer.appendChild(o); });
 
-  filterStaff.value = currentStaff;
-  filterCustomer.value = currentCustomer;
+  fUnit.innerHTML = '<option value="">部署: 全件</option>';
+  unitSet.forEach(u => { const o=document.createElement('option'); o.value=u; o.textContent=u; fUnit.appendChild(o); });
+
+  fStaff.value = curS; fCustomer.value = curC; fUnit.value = curU;
 }
 
 function setPeriod(p, btn) {
   currentPeriod = p;
-  document.querySelectorAll('.period-btn').forEach(b => {
-    if (b.parentElement.id !== 'summaryPeriodBtns') b.classList.remove('active');
-  });
+  document.querySelectorAll('#page-list .period-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   applyFilters();
 }
 
 function applyFilters() {
-  const unit = document.getElementById('filterUnit').value;
-  const staff = document.getElementById('filterStaff').value;
+  const unit     = document.getElementById('filterUnit').value;
+  const staff    = document.getElementById('filterStaff').value;
   const customer = document.getElementById('filterCustomer').value;
-  const statusFilter = document.getElementById('filterStatus').value;
+  const status   = document.getElementById('filterStatus').value;
   const now = new Date();
 
   filteredReports = allReports.filter(r => {
-    if (unit && r.unit !== unit) return false;
-    if (staff && r.staff !== staff) return false;
+    if (unit     && r.unit     !== unit)    return false;
+    if (staff    && r.staff    !== staff)   return false;
     if (customer && r.customer !== customer) return false;
-    // ステータスフィルター：statusフィールドがない古いデータはcompletedとして扱う
-    const rStatus = r.status || 'completed';
-    if (statusFilter && rStatus !== statusFilter) return false;
+    const rs = r.status || 'completed';
+    if (status && rs !== status) return false;
     if (currentPeriod === 'month') {
       const d = parseDate(r.datetime);
-      if (d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) return false;
+      if (d.getFullYear()!==now.getFullYear() || d.getMonth()!==now.getMonth()) return false;
     }
     if (currentPeriod === 'week') {
-      const d = parseDate(r.datetime);
-      const diff = now - d;
-      if (diff > 7 * 24 * 3600 * 1000) return false;
+      if (now - parseDate(r.datetime) > 7*24*3600*1000) return false;
     }
     return true;
   });
-
   renderReportList();
 }
 
@@ -2037,41 +1317,41 @@ function renderReportList() {
   const container = document.getElementById('reportList');
   document.getElementById('listCount').textContent = `${filteredReports.length} 件`;
 
-  if (filteredReports.length === 0) {
+  if (!filteredReports.length) {
     container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>報告が見つかりません</p></div>';
     return;
   }
 
-  container.innerHTML = filteredReports.map((r, i) => {
-    const dt = r.datetime ? parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' }) : '';
+  container.innerHTML = filteredReports.map((r,i) => {
+    const dt = r.datetime
+      ? parseDate(r.datetime).toLocaleDateString('ja-JP',{year:'numeric',month:'numeric',day:'numeric'})
+      : '';
     const hasBoth = r.reductionTime && r.reductionCost;
-    const badgeClass = hasBoth ? 'badge-both' : (r.reductionTime ? 'badge-time' : (r.reductionCost ? 'badge-cost' : ''));
-    const badgeText = hasBoth
+    const badgeClass = hasBoth ? 'badge-both' : r.reductionTime ? 'badge-time' : r.reductionCost ? 'badge-cost' : '';
+    const badgeText  = hasBoth
       ? `⏱ ${r.reductionTime}h ／ 💰 ${Number(r.reductionCost).toLocaleString()}円`
       : r.reductionTime ? `⏱ ${r.reductionTime}h/月`
       : r.reductionCost ? `💰 ${Number(r.reductionCost).toLocaleString()}円/月` : '';
 
-    // statusがない古いデータはcompletedとみなす
-    const rStatus = r.status || 'completed';
-    const isInProgress = rStatus === 'in-progress';
-    const statusBadgeHtml = isInProgress
-      ? `<span class="status-badge in-progress">🟡 進行中</span>`
-      : `<span class="status-badge completed">✅ 完了</span>`;
+    const rs = r.status || 'completed';
+    const isIP = rs === 'in-progress';
+    const statusHtml = isIP
+      ? '<span class="status-badge in-progress">🟡 進行中</span>'
+      : '<span class="status-badge completed">✅ 完了</span>';
 
     const beforeHtml = r.beforePhoto
       ? `<div class="report-photo-wrap"><img src="${r.beforePhoto}" loading="lazy"><div class="report-photo-badge before">Before</div></div>`
-      : `<div class="report-photo-wrap report-no-photo">📷</div>`;
+      : `<div class="report-photo-wrap report-no-photo">📷<span>未登録</span></div>`;
     const afterHtml = r.afterPhoto
       ? `<div class="report-photo-wrap"><img src="${r.afterPhoto}" loading="lazy"><div class="report-photo-badge after">After</div></div>`
-      : `<div class="report-photo-wrap report-no-photo">📸 アフター未登録</div>`;
+      : `<div class="report-photo-wrap report-no-photo">📸<span>未登録</span></div>`;
 
-    // 進行中カードにはアフター追加ボタンを表示
-    const addAfterBtn = isInProgress
-      ? `<button class="add-after-btn" onclick="event.stopPropagation(); openEditModal(${i})">📸 アフター写真を追加して完了にする →</button>`
+    const addBtn = isIP
+      ? `<button class="add-after-btn" onclick="event.stopPropagation();openEditModal(${i})">📸 アフター写真を追加して完了にする →</button>`
       : '';
 
     return `
-      <div class="report-card ${rStatus}" onclick="openDetail(${i})">
+      <div class="report-card ${rs}" onclick="openDetail(${i})">
         <div class="report-card-header">
           <div class="no-badge">No.${r.no}</div>
           <div class="report-card-meta">
@@ -2083,36 +1363,36 @@ function renderReportList() {
             </div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-            ${statusBadgeHtml}
+            ${statusHtml}
             ${badgeText ? `<span class="badge ${badgeClass}" style="font-size:10px;">${badgeText}</span>` : ''}
           </div>
         </div>
-        ${(r.beforePhoto || r.afterPhoto) ? `<div class="report-photos">${beforeHtml}${afterHtml}</div>` : ''}
-        ${r.improvement ? `<div class="report-card-body">${escHtml(r.improvement.slice(0, 80))}${r.improvement.length > 80 ? '…' : ''}</div>` : ''}
-        ${addAfterBtn}
-      </div>
-    `;
+        <div class="report-photos">${beforeHtml}${afterHtml}</div>
+        ${r.improvement ? `<div class="report-card-body">${escHtml(r.improvement.slice(0,80))}${r.improvement.length>80?'…':''}</div>` : ''}
+        ${addBtn}
+      </div>`;
   }).join('');
 }
 
-// ===== SUMMARY =====
+// ================================================================
+// SUMMARY
+// ================================================================
 async function loadSummary() {
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   if (!gasUrl) return;
-
-  if (allReports.length === 0) {
+  if (!allReports.length) {
     try {
-      const res = await fetch(`${gasUrl}?action=getReports`);
+      const res  = await fetch(`${gasUrl}?action=getReports`);
       const data = await res.json();
       allReports = data.reports || [];
-    } catch (e) { return; }
+    } catch(e) { return; }
   }
   renderSummary();
 }
 
 function setSummaryPeriod(p, btn) {
   currentSummaryPeriod = p;
-  document.querySelectorAll('.period-filter .period-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#page-summary .period-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderSummary();
 }
@@ -2122,117 +1402,151 @@ function renderSummary() {
   const filtered = allReports.filter(r => {
     if (currentSummaryPeriod === 'month') {
       const d = parseDate(r.datetime);
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
     }
-    if (currentSummaryPeriod === 'year') {
-      return parseDate(r.datetime).getFullYear() === now.getFullYear();
-    }
+    if (currentSummaryPeriod === 'year')
+      return parseDate(r.datetime).getFullYear()===now.getFullYear();
     return true;
   });
 
-  const totalTime = filtered.reduce((s, r) => s + (parseFloat(r.reductionTime) || 0), 0);
-  const totalCost = filtered.reduce((s, r) => s + (parseInt(r.reductionCost) || 0), 0);
+  const totalTime = filtered.reduce((s,r) => s+(parseFloat(r.reductionTime)||0), 0);
+  const totalCost = filtered.reduce((s,r) => s+(parseInt(r.reductionCost)||0),   0);
 
   document.getElementById('statCount').innerHTML = `${filtered.length}<span class="stat-unit">件</span>`;
-  document.getElementById('statTime').innerHTML = `${totalTime.toFixed(1)}<span class="stat-unit">h</span>`;
-  document.getElementById('statCost').innerHTML = `${totalCost.toLocaleString()}<span class="stat-unit">円</span>`;
+  document.getElementById('statTime').innerHTML  = `${totalTime.toFixed(1)}<span class="stat-unit">h</span>`;
+  document.getElementById('statCost').innerHTML  = `${totalCost.toLocaleString()}<span class="stat-unit">円</span>`;
 
-  // Unit table
+  // 部署別テーブル（GASから動的取得した部署リスト使用）
   const unitMap = {};
   filtered.forEach(r => {
     const key = r.unit || '未設定';
-    if (!unitMap[key]) unitMap[key] = { count: 0, time: 0, cost: 0 };
+    if (!unitMap[key]) unitMap[key] = { count:0, time:0, cost:0 };
     unitMap[key].count++;
-    unitMap[key].time += parseFloat(r.reductionTime) || 0;
-    unitMap[key].cost += parseInt(r.reductionCost) || 0;
+    unitMap[key].time += parseFloat(r.reductionTime)||0;
+    unitMap[key].cost += parseInt(r.reductionCost)||0;
   });
-
-  document.getElementById('unitTable').innerHTML = Object.entries(unitMap).length === 0
+  document.getElementById('unitTable').innerHTML = !Object.keys(unitMap).length
     ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px;">データなし</td></tr>'
-    : Object.entries(unitMap).sort((a, b) => b[1].count - a[1].count).map(([name, d]) =>
-        `<tr><td><strong>${escHtml(name)}</strong></td><td class="td-num">${d.count}</td><td class="td-num">${d.time.toFixed(1)}h</td><td class="td-num">${d.cost.toLocaleString()}円</td></tr>`
-      ).join('');
+    : Object.entries(unitMap).sort((a,b)=>b[1].count-a[1].count)
+        .map(([name,d]) => `<tr><td><strong>${escHtml(name)}</strong></td><td class="td-num">${d.count}</td><td class="td-num">${d.time.toFixed(1)}h</td><td class="td-num">${d.cost.toLocaleString()}円</td></tr>`)
+        .join('');
 
   renderGoals(filtered);
 }
 
 function renderGoals(filtered) {
-  const now = new Date();
-  const UNITS = ['ユニット2', 'ユニット3'];
-
-  // 目標値（GASから取得した値を優先）
   const MONTHLY_GOAL = window._monthlyGoal || 4;
   const ANNUAL_GOAL  = window._annualGoal  || 100;
+  const UNITS = _unitList.length ? _unitList : ['ユニット2','ユニット3'];
 
-  // 期間ラベル・目標件数を期間に応じて算出
   let periodLabel, monthCount;
-  if (currentSummaryPeriod === 'month') {
-    periodLabel = '今月';
-    monthCount = 1;
-  } else if (currentSummaryPeriod === 'year') {
-    periodLabel = '今年';
-    monthCount = 12;
-  } else {
-    periodLabel = '全期間';
-    monthCount = null; // 全期間は月目標非表示
-  }
+  if (currentSummaryPeriod==='month') { periodLabel='今月'; monthCount=1; }
+  else if (currentSummaryPeriod==='year') { periodLabel='今年'; monthCount=12; }
+  else { periodLabel='全期間'; monthCount=null; }
 
-  // 年間全体達成率カード（今年 or 全期間で表示）
-  const annualCount = currentSummaryPeriod === 'all'
-    ? allReports.length
-    : filtered.length;
-  const annualTarget = currentSummaryPeriod === 'month' ? MONTHLY_GOAL * 2 : ANNUAL_GOAL;
-  const annualRate = Math.min(Math.round(annualCount / annualTarget * 100), 100);
-  const annualLabel = currentSummaryPeriod === 'month' ? '月間目標（全体）' : '年間目標（全体）';
-  const annualGoalNum = currentSummaryPeriod === 'month' ? MONTHLY_GOAL * 2 : ANNUAL_GOAL;
+  const annualCount  = currentSummaryPeriod==='all' ? allReports.length : filtered.length;
+  const annualTarget = currentSummaryPeriod==='month' ? MONTHLY_GOAL*UNITS.length : ANNUAL_GOAL;
+  const annualRate   = Math.min(Math.round(annualCount/annualTarget*100), 100);
 
   let html = `
     <div class="goal-annual-card">
       <div class="goal-annual-header">
-        <span class="goal-annual-title">🎯 ${annualLabel}：${annualGoalNum}件</span>
+        <span class="goal-annual-title">🎯 ${currentSummaryPeriod==='month'?'月間':'年間'}目標（全体）：${annualTarget}件</span>
         <span class="goal-annual-badge">${annualRate}%</span>
       </div>
-      <div class="goal-annual-bar-wrap">
-        <div class="goal-annual-bar" style="width:${annualRate}%"></div>
-      </div>
+      <div class="goal-annual-bar-wrap"><div class="goal-annual-bar" style="width:${annualRate}%"></div></div>
       <div class="goal-annual-meta">
         <span>達成 <strong>${annualCount}件</strong></span>
-        <span>残り <strong>${Math.max(annualGoalNum - annualCount, 0)}件</strong></span>
+        <span>残り <strong>${Math.max(annualTarget-annualCount,0)}件</strong></span>
       </div>
-    </div>
-  `;
+    </div>`;
 
-  // 部署別月次目標（月・年表示のみ）
   if (monthCount !== null) {
     const unitGoal = MONTHLY_GOAL * monthCount;
     UNITS.forEach(unit => {
-      const count = filtered.filter(r => r.unit === unit).length;
-      const rate = Math.min(Math.round(count / unitGoal * 100), 100);
-      const barClass = rate >= 100 ? 'goal-bar-green' : rate >= 50 ? 'goal-bar-yellow' : 'goal-bar-red';
-      const badgeClass = rate >= 100 ? 'achieved' : rate >= 50 ? 'progress' : 'low';
-      const badgeText = rate >= 100 ? '達成 ✓' : `${rate}%`;
+      const count = filtered.filter(r=>r.unit===unit).length;
+      const rate  = Math.min(Math.round(count/unitGoal*100), 100);
+      const barClass   = rate>=100?'goal-bar-green':rate>=50?'goal-bar-yellow':'goal-bar-red';
+      const badgeClass = rate>=100?'achieved':rate>=50?'progress':'low';
       html += `
         <div class="goal-card">
           <div class="goal-card-header">
             <span class="goal-card-title">${escHtml(unit)}｜${periodLabel}目標：${unitGoal}件</span>
-            <span class="goal-badge ${badgeClass}">${badgeText}</span>
+            <span class="goal-badge ${badgeClass}">${rate>=100?'達成 ✓':rate+'%'}</span>
           </div>
-          <div class="goal-progress-bar-wrap">
-            <div class="goal-progress-bar ${barClass}" style="width:${rate}%"></div>
-          </div>
+          <div class="goal-progress-bar-wrap"><div class="goal-progress-bar ${barClass}" style="width:${rate}%"></div></div>
           <div class="goal-meta">
             <span>達成 <strong>${count}件</strong> / 目標 ${unitGoal}件</span>
-            <span>残り <strong>${Math.max(unitGoal - count, 0)}件</strong></span>
+            <span>残り <strong>${Math.max(unitGoal-count,0)}件</strong></span>
           </div>
-        </div>
-      `;
+        </div>`;
     });
   }
-
   document.getElementById('goalSection').innerHTML = html;
 }
 
-// ===== EDIT MODAL (AFTER PHOTO) =====
+// ================================================================
+// DETAIL MODAL
+// ================================================================
+function openDetail(idx) {
+  const r = filteredReports[idx];
+  if (!r) return;
+  window._currentReport = r;
+
+  document.getElementById('modalTitle').textContent = `No.${r.no} ${r.customer}`;
+
+  let photosHtml = '';
+  if (r.beforePhoto) photosHtml += `<div class="modal-photo-wrap"><img src="${r.beforePhoto}"><div class="report-photo-badge before" style="bottom:6px;left:6px;position:absolute;">Before</div></div>`;
+  if (r.afterPhoto)  photosHtml += `<div class="modal-photo-wrap"><img src="${r.afterPhoto}"><div class="report-photo-badge after" style="bottom:6px;left:6px;position:absolute;">After</div></div>`;
+  document.getElementById('modalPhotos').innerHTML = photosHtml;
+
+  const dt = parseDate(r.datetime).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+  const rs = r.status || 'completed';
+  const statusLabel = rs==='in-progress' ? '🟡 進行中' : '✅ 完了';
+  const statusColor = rs==='in-progress' ? 'var(--yellow)' : 'var(--green)';
+
+  let infoHtml = `
+    <div class="modal-info-item"><div class="modal-info-label">報告番号</div><div class="modal-info-value" style="font-weight:700;color:var(--accent);">No.${r.no}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">ステータス</div><div class="modal-info-value" style="font-weight:700;color:${statusColor};">${statusLabel}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">日時</div><div class="modal-info-value">${dt}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">部署</div><div class="modal-info-value">${escHtml(r.unit)||'—'}</div></div>
+    <div class="modal-info-item"><div class="modal-info-label">担当者</div><div class="modal-info-value">${escHtml(r.staff)}</div></div>`;
+  if (r.reductionTime) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減時間</div><div class="modal-info-value" style="color:var(--yellow);font-weight:700;">${r.reductionTime} 時間/月</div></div>`;
+  if (r.reductionCost) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減費用</div><div class="modal-info-value" style="color:var(--green);font-weight:700;">${Number(r.reductionCost).toLocaleString()} 円/月</div></div>`;
+  document.getElementById('modalInfo').innerHTML = infoHtml;
+
+  document.getElementById('modalContent').innerHTML = r.improvement
+    ? `<div class="modal-info-label" style="margin-bottom:6px;">改善内容</div><div class="modal-content-text">${escHtml(r.improvement).replace(/\n/g,'<br>')}</div>`
+    : '';
+
+  // フッターのアフター追加ボタン
+  const footer = document.getElementById('detailModalFooter');
+  let editBtn = document.getElementById('detailEditBtn');
+  if (rs === 'in-progress') {
+    const realIdx = filteredReports.findIndex(fr => fr.id === r.id);
+    if (!editBtn) {
+      editBtn = document.createElement('button');
+      editBtn.id = 'detailEditBtn';
+      editBtn.className = 'edit-submit-btn';
+      footer.insertBefore(editBtn, footer.firstChild);
+    }
+    editBtn.innerHTML = '📸 アフター写真を追加して完了にする';
+    editBtn.onclick = () => { closeDetailModal(); openEditModal(realIdx); };
+    editBtn.style.display = 'flex';
+  } else if (editBtn) {
+    editBtn.style.display = 'none';
+  }
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('open');
+}
+
+// ================================================================
+// EDIT MODAL
+// ================================================================
 let _editPhotoData = null;
 let _editTargetReport = null;
 
@@ -2244,53 +1558,51 @@ function openEditModal(idx) {
 
   document.getElementById('editModalTitle').textContent = `✏️ No.${r.no} ${r.customer} — アフター追加`;
 
-  // ビフォー写真があれば表示
-  const beforeSection = document.getElementById('editBeforeSection');
-  const beforeThumb = document.getElementById('editBeforeThumb');
+  const bs = document.getElementById('editBeforeSection');
   if (r.beforePhoto) {
-    beforeThumb.src = r.beforePhoto;
-    beforeSection.style.display = 'block';
-  } else {
-    beforeSection.style.display = 'none';
-  }
+    document.getElementById('editBeforeThumb').src = r.beforePhoto;
+    bs.style.display = 'block';
+  } else { bs.style.display = 'none'; }
 
-  // ドロップゾーンをリセット
   const dz = document.getElementById('editAfterDropzone');
   dz.classList.remove('has-image');
   dz.innerHTML = `<div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして写真を選択</div>`;
   dz.onclick = () => triggerEditPhoto('file');
 
-  // コメント欄リセット
   document.getElementById('editImprovementAppend').value = '';
-
   document.getElementById('editModal').classList.add('open');
 }
 
-function closeEditModal(e) {
-  if (e.target === document.getElementById('editModal'))
-    document.getElementById('editModal').classList.remove('open');
+function closeEditModalEl() {
+  document.getElementById('editModal').classList.remove('open');
 }
 
 function triggerEditPhoto(mode) {
-  const id = mode === 'camera' ? 'editAfterCameraInput' : 'editAfterFileInput';
-  document.getElementById(id).click();
+  document.getElementById(mode==='camera' ? 'editAfterCameraInput' : 'editAfterFileInput').click();
 }
 
 function handleEditPhoto(input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    _editPhotoData = e.target.result;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    let w=img.naturalWidth, h=img.naturalHeight;
+    if (w>MAX_PX||h>MAX_PX) {
+      if (w>h){h=Math.round(h*MAX_PX/w);w=MAX_PX;}
+      else    {w=Math.round(w*MAX_PX/h);h=MAX_PX;}
+    }
+    const canvas=document.createElement('canvas');
+    canvas.width=w; canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    _editPhotoData = canvas.toDataURL('image/jpeg', QUALITY);
     const dz = document.getElementById('editAfterDropzone');
     dz.classList.add('has-image');
-    dz.innerHTML = `
-      <img src="${e.target.result}" alt="After">
-      <button class="photo-remove" onclick="clearEditPhoto(event)">✕</button>
-    `;
+    dz.innerHTML = `<img src="${_editPhotoData}" alt="After"><button class="photo-remove" onclick="clearEditPhoto(event)">✕</button>`;
     dz.onclick = null;
   };
-  reader.readAsDataURL(file);
+  img.src = url;
   input.value = '';
 }
 
@@ -2304,44 +1616,31 @@ function clearEditPhoto(e) {
 }
 
 async function submitEditReport() {
-  if (!_editPhotoData) {
-    showToast('アフター写真を選択してください', 'error');
-    return;
-  }
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
-  if (!gasUrl) { showToast('GAS URLを設定してください', 'error'); return; }
+  if (!_editPhotoData) { showToast('アフター写真を選択してください','error'); return; }
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+  if (!gasUrl) { showToast('GAS URLを設定してください','error'); return; }
 
   const btn = document.getElementById('editSubmitBtn');
   const txt = document.getElementById('editSubmitText');
   btn.disabled = true;
   txt.innerHTML = '<span class="spinner"></span> 送信中...';
 
-  const appendText = document.getElementById('editImprovementAppend').value.trim();
+  const append = document.getElementById('editImprovementAppend').value.trim();
   const newImprovement = _editTargetReport.improvement
-    ? (_editTargetReport.improvement + (appendText ? '\n\n【完了時追記】' + appendText : ''))
-    : appendText;
-
-  const payload = {
-    action: 'updateReport',
-    id: _editTargetReport.id,
-    afterPhoto: _editPhotoData,
-    status: 'completed',
-    improvement: newImprovement,
-  };
+    ? (_editTargetReport.improvement + (append ? '\n\n【完了時追記】' + append : ''))
+    : append;
 
   try {
     const res = await fetch(gasUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'updateReport', id:_editTargetReport.id, afterPhoto:_editPhotoData, status:'completed', improvement:newImprovement }),
     });
     const result = await res.json();
-    if (result.status !== 'ok') throw new Error(result.message);
-
-    showToast('アフター写真を登録しました！完了にしました ✅', 'success');
-    document.getElementById('editModal').classList.remove('open');
+    if (result.status!=='ok') throw new Error(result.message);
+    showToast('アフター写真を登録しました！完了にしました ✅','success');
+    closeEditModalEl();
     await loadReports();
-  } catch (err) {
+  } catch(err) {
     showToast('更新に失敗しました: ' + err.message, 'error');
   } finally {
     btn.disabled = false;
@@ -2349,89 +1648,15 @@ async function submitEditReport() {
   }
 }
 
-// ===== DETAIL MODAL =====
-function openDetail(idx) {
-  const r = filteredReports[idx];
-  if (!r) return;
-
-  document.getElementById('modalTitle').textContent = `No.${r.no} ${r.customer}`;
-
-  // Photos
-  let photosHtml = '';
-  if (r.beforePhoto) {
-    photosHtml += `<div class="modal-photo-wrap"><img src="${r.beforePhoto}"><div class="report-photo-badge before" style="bottom:6px;left:6px;position:absolute;">Before</div></div>`;
-  }
-  if (r.afterPhoto) {
-    photosHtml += `<div class="modal-photo-wrap"><img src="${r.afterPhoto}"><div class="report-photo-badge after" style="bottom:6px;left:6px;position:absolute;">After</div></div>`;
-  }
-  document.getElementById('modalPhotos').innerHTML = photosHtml;
-  if (!r.beforePhoto && !r.afterPhoto) document.getElementById('modalPhotos').innerHTML = '';
-
-  // Info
-  const dt = parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-  const rStatus = r.status || 'completed';
-  const statusLabel = rStatus === 'in-progress' ? '🟡 進行中' : '✅ 完了';
-  const statusColor = rStatus === 'in-progress' ? 'var(--yellow)' : 'var(--green)';
-  let infoHtml = `
-    <div class="modal-info-item"><div class="modal-info-label">報告番号</div><div class="modal-info-value" style="font-weight:700;color:var(--accent);">No.${r.no}</div></div>
-    <div class="modal-info-item"><div class="modal-info-label">ステータス</div><div class="modal-info-value" style="font-weight:700;color:${statusColor};">${statusLabel}</div></div>
-    <div class="modal-info-item"><div class="modal-info-label">日時</div><div class="modal-info-value">${dt}</div></div>
-    <div class="modal-info-item"><div class="modal-info-label">部署</div><div class="modal-info-value">${escHtml(r.unit) || '—'}</div></div>
-    <div class="modal-info-item"><div class="modal-info-label">担当者</div><div class="modal-info-value">${escHtml(r.staff)}</div></div>
-  `;
-  if (r.reductionTime) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減時間</div><div class="modal-info-value" style="color:var(--yellow);font-weight:700;">${r.reductionTime} 時間/月</div></div>`;
-  if (r.reductionCost) infoHtml += `<div class="modal-info-item"><div class="modal-info-label">削減費用</div><div class="modal-info-value" style="color:var(--green);font-weight:700;">${Number(r.reductionCost).toLocaleString()} 円/月</div></div>`;
-  document.getElementById('modalInfo').innerHTML = infoHtml;
-
-  // 進行中の場合は詳細モーダルにも「アフター追加」ボタンを表示
-  const modalFooter = document.querySelector('#detailModal .modal-footer');
-  if (rStatus === 'in-progress') {
-    // filteredReportsのインデックスをidで検索
-    const idx = filteredReports.findIndex(fr => fr.id === r.id);
-    if (idx >= 0) {
-      let editBtn = document.getElementById('detailEditBtn');
-      if (!editBtn) {
-        editBtn = document.createElement('button');
-        editBtn.id = 'detailEditBtn';
-        editBtn.className = 'edit-submit-btn';
-        editBtn.style.marginBottom = '8px';
-        modalFooter.insertBefore(editBtn, modalFooter.firstChild);
-      }
-      editBtn.innerHTML = '📸 アフター写真を追加して完了にする';
-      editBtn.onclick = () => { closeDetailModal(); openEditModal(idx); };
-      editBtn.style.display = 'flex';
-    }
-  } else {
-    const editBtn = document.getElementById('detailEditBtn');
-    if (editBtn) editBtn.style.display = 'none';
-  }
-
-  // Content
-  document.getElementById('modalContent').innerHTML = r.improvement
-    ? `<div class="modal-info-label" style="margin-bottom:6px;">改善内容</div><div class="modal-content-text">${escHtml(r.improvement)}</div>`
-    : '';
-
-  document.getElementById('detailModal').classList.add('open');
-  window._currentReport = r;
-}
-
-function closeDetailModal() {
-  document.getElementById('detailModal').classList.remove('open');
-}
-
-function closeModal(e) {
-  if (e.target === document.getElementById('detailModal')) closeDetailModal();
-}
-
-// ===== PRINT =====
+// ================================================================
+// PRINT
+// ================================================================
 function printReport() {
   const r = window._currentReport;
   if (!r) return;
-
-  const dt = parseDate(r.datetime).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeRow = r.reductionTime ? `<tr><th>削減時間</th><td><span class="highlight-time">${r.reductionTime} 時間/月</span></td></tr>` : '';
-  const costRow = r.reductionCost ? `<tr><th>削減費用</th><td><span class="highlight-cost">${Number(r.reductionCost).toLocaleString()} 円/月</span></td></tr>` : '';
-
+  const dt = parseDate(r.datetime).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+  const timeRow = r.reductionTime ? `<tr><th>削減時間</th><td><span style="color:#D97706;font-weight:700;">${r.reductionTime} 時間/月</span></td></tr>` : '';
+  const costRow = r.reductionCost ? `<tr><th>削減費用</th><td><span style="color:#16A34A;font-weight:700;">${Number(r.reductionCost).toLocaleString()} 円/月</span></td></tr>` : '';
   const beforeImg = r.beforePhoto
     ? `<div class="photo-box"><div class="photo-label before-label">BEFORE</div><img src="${r.beforePhoto}"></div>`
     : `<div class="photo-box no-photo"><div class="photo-label before-label">BEFORE</div><div class="no-photo-text">写真なし</div></div>`;
@@ -2439,254 +1664,69 @@ function printReport() {
     ? `<div class="photo-box"><div class="photo-label after-label">AFTER</div><img src="${r.afterPhoto}"></div>`
     : `<div class="photo-box no-photo"><div class="photo-label after-label">AFTER</div><div class="no-photo-text">写真なし</div></div>`;
 
-  const html = `<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>改善報告書 No.${r.no} — ${escHtml(r.customer)} ${dt}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+  const html = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
+<title>改善報告書 No.${r.no}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 11pt;
-    color: #1A1D23;
-    background: white;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  @page {
-    size: A4 portrait;
-    margin: 15mm 15mm 15mm 15mm;
-  }
-
-  .page {
-    width: 180mm;
-    min-height: 257mm;
-    margin: 0 auto;
-    padding: 0;
-  }
-
-  /* ヘッダー */
-  .doc-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 8pt;
-    border-bottom: 2.5pt solid #1A6FE8;
-    margin-bottom: 14pt;
-  }
-
-  .doc-title {
-    font-size: 18pt;
-    font-weight: 700;
-    color: #1A6FE8;
-    letter-spacing: 0.02em;
-  }
-
-  .doc-logo {
-    font-size: 10pt;
-    color: #9AA0AD;
-    text-align: right;
-    line-height: 1.5;
-  }
-
-  /* 基本情報テーブル */
-  .info-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 14pt;
-    font-size: 10pt;
-  }
-
-  .info-table th {
-    width: 28mm;
-    background: #F0F2F5;
-    padding: 7pt 10pt;
-    text-align: left;
-    font-weight: 600;
-    color: #5A6070;
-    border: 1pt solid #E2E5EA;
-    white-space: nowrap;
-  }
-
-  .info-table td {
-    padding: 7pt 10pt;
-    border: 1pt solid #E2E5EA;
-    color: #1A1D23;
-    font-weight: 500;
-  }
-
-  .highlight-time {
-    color: #D97706;
-    font-weight: 700;
-    font-size: 11pt;
-  }
-
-  .highlight-cost {
-    color: #16A34A;
-    font-weight: 700;
-    font-size: 11pt;
-  }
-
-  /* 改善内容 */
-  .section-title {
-    font-size: 10pt;
-    font-weight: 700;
-    color: #5A6070;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6pt;
-    padding-bottom: 4pt;
-    border-bottom: 1pt solid #E2E5EA;
-  }
-
-  .content-box {
-    border: 1pt solid #E2E5EA;
-    border-radius: 4pt;
-    padding: 10pt;
-    min-height: 36pt;
-    font-size: 10.5pt;
-    line-height: 1.8;
-    color: #1A1D23;
-    margin-bottom: 14pt;
-    background: #FAFBFC;
-  }
-
-  /* 写真エリア */
-  .photos-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10pt;
-    margin-bottom: 14pt;
-  }
-
-  .photo-box {
-    border: 1pt solid #E2E5EA;
-    border-radius: 4pt;
-    overflow: hidden;
-  }
-
-  .photo-label {
-    padding: 5pt 10pt;
-    font-size: 9pt;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .before-label { background: #FEF3C7; color: #D97706; }
-  .after-label  { background: #DCFCE7; color: #16A34A; }
-
-  .photo-box img {
-    width: 100%;
-    height: 70mm;
-    object-fit: cover;
-    display: block;
-  }
-
-  .no-photo {
-    background: #F5F6F8;
-  }
-
-  .no-photo-text {
-    height: 70mm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #9AA0AD;
-    font-size: 10pt;
-  }
-
-  /* フッター */
-  .doc-footer {
-    border-top: 1pt solid #E2E5EA;
-    padding-top: 8pt;
-    font-size: 8.5pt;
-    color: #9AA0AD;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  /* 印刷時ボタン非表示 */
-  .print-actions {
-    text-align: center;
-    padding: 16pt 0 10pt;
-    display: flex;
-    gap: 10pt;
-    justify-content: center;
-  }
-
-  .btn {
-    padding: 9pt 22pt;
-    border-radius: 6pt;
-    font-size: 11pt;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-  }
-
-  .btn-print { background: #1A6FE8; color: white; }
-  .btn-close { background: #F0F2F5; color: #5A6070; }
-
-  @media print {
-    .print-actions { display: none; }
-  }
-</style>
-</head>
-<body>
-<div class="page">
-
-  <div class="print-actions">
-    <button class="btn btn-print" onclick="window.print()">🖨️ 印刷 / PDF保存</button>
-    <button class="btn btn-close" onclick="window.close()">✕ 閉じる</button>
-  </div>
-
-  <div class="doc-header">
-    <div class="doc-title">♻ 改善報告書</div>
-    <div class="doc-logo">産廃回収 改善報告アプリ<br>${dt}</div>
-  </div>
-
-  <table class="info-table">
-    <tr><th>報告番号</th><td><strong style="color:#1A6FE8;">No.${r.no}</strong></td></tr>
-    <tr><th>顧客名</th><td>${escHtml(r.customer)}</td></tr>
-    <tr><th>日付</th><td>${dt}</td></tr>
-    <tr><th>部署</th><td>${escHtml(r.unit) || '—'}</td></tr>
-    <tr><th>担当者</th><td>${escHtml(r.staff)}</td></tr>
-    ${timeRow}
-    ${costRow}
-  </table>
-
-  <div class="section-title">改善内容</div>
-  <div class="content-box">${escHtml(r.improvement || '（記載なし）').replace(/\n/g, '<br>')}</div>
-
-  <div class="section-title">ビフォーアフター写真</div>
-  <div class="photos-grid">
-    ${beforeImg}
-    ${afterImg}
-  </div>
-
-  <div class="doc-footer">
-    <span>改善報告書 — ${escHtml(r.customer)} / ${escHtml(r.unit)} / ${escHtml(r.staff)}</span>
-    <span>出力日：${new Date().toLocaleDateString('ja-JP')}</span>
-  </div>
-
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;font-size:11pt;color:#1A1D23;background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@page{size:A4 portrait;margin:15mm}
+.page{width:180mm;min-height:257mm;margin:0 auto}
+.doc-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8pt;border-bottom:2.5pt solid #1A6FE8;margin-bottom:14pt}
+.doc-title{font-size:18pt;font-weight:700;color:#1A6FE8}
+.doc-logo{font-size:10pt;color:#9AA0AD;text-align:right;line-height:1.5}
+.info-table{width:100%;border-collapse:collapse;margin-bottom:14pt;font-size:10pt}
+.info-table th{width:28mm;background:#F0F2F5;padding:7pt 10pt;text-align:left;font-weight:600;color:#5A6070;border:1pt solid #E2E5EA;white-space:nowrap}
+.info-table td{padding:7pt 10pt;border:1pt solid #E2E5EA;color:#1A1D23;font-weight:500}
+.section-title{font-size:10pt;font-weight:700;color:#5A6070;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6pt;padding-bottom:4pt;border-bottom:1pt solid #E2E5EA}
+.content-box{border:1pt solid #E2E5EA;border-radius:4pt;padding:10pt;min-height:36pt;font-size:10.5pt;line-height:1.8;margin-bottom:14pt;background:#FAFBFC}
+.photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt;margin-bottom:14pt}
+.photo-box{border:1pt solid #E2E5EA;border-radius:4pt;overflow:hidden}
+.photo-label{padding:5pt 10pt;font-size:9pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.before-label{background:#FEF3C7;color:#D97706}.after-label{background:#DCFCE7;color:#16A34A}
+.photo-box img{width:100%;height:70mm;object-fit:cover;display:block}
+.no-photo{background:#F5F6F8}.no-photo-text{height:70mm;display:flex;align-items:center;justify-content:center;color:#9AA0AD;font-size:10pt}
+.doc-footer{border-top:1pt solid #E2E5EA;padding-top:8pt;font-size:8.5pt;color:#9AA0AD;display:flex;justify-content:space-between}
+.print-actions{text-align:center;padding:16pt 0 10pt;display:flex;gap:10pt;justify-content:center}
+.btn{padding:9pt 22pt;border-radius:6pt;font-size:11pt;font-weight:700;font-family:inherit;cursor:pointer;border:none}
+.btn-print{background:#1A6FE8;color:white}.btn-close{background:#F0F2F5;color:#5A6070}
+@media print{.print-actions{display:none}}
+</style></head><body><div class="page">
+<div class="print-actions">
+  <button class="btn btn-print" onclick="window.print()">🖨️ 印刷 / PDF保存</button>
+  <button class="btn btn-close" onclick="window.close()">✕ 閉じる</button>
 </div>
-</body>
-</html>`;
+<div class="doc-header">
+  <div class="doc-title">♻ 改善報告書</div>
+  <div class="doc-logo">産廃回収 改善報告アプリ<br>${dt}</div>
+</div>
+<table class="info-table">
+  <tr><th>報告番号</th><td><strong style="color:#1A6FE8;">No.${r.no}</strong></td></tr>
+  <tr><th>顧客名</th><td>${escHtml(r.customer)}</td></tr>
+  <tr><th>日付</th><td>${dt}</td></tr>
+  <tr><th>部署</th><td>${escHtml(r.unit)||'—'}</td></tr>
+  <tr><th>担当者</th><td>${escHtml(r.staff)}</td></tr>
+  ${timeRow}${costRow}
+</table>
+<div class="section-title">改善内容</div>
+<div class="content-box">${escHtml(r.improvement||'（記載なし）').replace(/\n/g,'<br>')}</div>
+<div class="section-title">ビフォーアフター写真</div>
+<div class="photos-grid">${beforeImg}${afterImg}</div>
+<div class="doc-footer">
+  <span>改善報告書 — ${escHtml(r.customer)} / ${escHtml(r.unit)} / ${escHtml(r.staff)}</span>
+  <span>出力日：${new Date().toLocaleDateString('ja-JP')}</span>
+</div>
+</div></body></html>`;
 
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const win  = window.open(url, '_blank');
-  if (!win) showToast('ポップアップがブロックされました。許可してください', 'error');
+  const win = window.open(URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),'_blank');
+  if (!win) showToast('ポップアップがブロックされました。許可してください','error');
 }
 
-// ===== DELETE MODAL =====
+// ================================================================
+// DELETE MODAL
+// ================================================================
 async function openDeleteModal() {
-  document.getElementById('settingsModal').classList.remove('open');
+  closeModal('settingsModal');
   document.getElementById('deleteModal').classList.add('open');
   await renderDeleteList();
 }
@@ -2694,60 +1734,65 @@ async function openDeleteModal() {
 async function renderDeleteList() {
   const container = document.getElementById('deleteList');
   container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);">読み込み中...</div>';
-
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
-  if (!gasUrl) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);">GAS URLが未設定です</div>'; return; }
-
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
+  if (!gasUrl) { container.innerHTML='<div style="padding:24px;text-align:center;">GAS URLが未設定です</div>'; return; }
   try {
     const res  = await fetch(`${gasUrl}?action=getReports`);
     const data = await res.json();
-    const reports = (data.reports || []).map((r, i, arr) => ({ ...r, no: arr.length - i }));
-
-    if (reports.length === 0) {
-      container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);">報告データがありません</div>';
-      return;
-    }
-
-    container.innerHTML = reports.map(r => {
-      const dt = r.datetime ? parseDate(r.datetime).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) : '—';
-      return `
-        <div class="delete-row" id="drow-${escHtml(r.id)}">
-          <div class="delete-row-info">
-            <span class="delete-no">No.${r.no}</span>
-            <span class="delete-customer">${escHtml(r.customer)}</span>
-            <span class="delete-meta">${escHtml(r.unit || '')} ${escHtml(r.staff)} ${dt}</span>
-          </div>
-          <button class="delete-row-btn" onclick="confirmDelete('${escHtml(r.id)}', 'No.${r.no} ${escHtml(r.customer)}')">削除</button>
+    const rpts = (data.reports||[]).map((r,i,a)=>({...r,no:a.length-i}));
+    if (!rpts.length) { container.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);">報告データがありません</div>'; return; }
+    container.innerHTML = rpts.map(r => {
+      const dt = r.datetime ? parseDate(r.datetime).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}) : '—';
+      return `<div class="delete-row">
+        <div class="delete-row-info">
+          <span class="delete-no">No.${r.no}</span>
+          <span class="delete-customer">${escHtml(r.customer)}</span>
+          <span class="delete-meta">${escHtml(r.unit||'')} ${escHtml(r.staff)} ${dt}</span>
         </div>
-      `;
+        <button class="delete-row-btn" onclick="confirmDelete('${escHtml(r.id)}','No.${r.no} ${escHtml(r.customer)}')">削除</button>
+      </div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--red);">読み込み失敗: ${e.message}</div>`;
+    container.innerHTML=`<div style="padding:24px;text-align:center;color:var(--red);">読み込み失敗: ${e.message}</div>`;
   }
+}
+
+// カスタム確認モーダル（confirm()の代替）
+let _confirmResolve = null;
+function showConfirm(icon, msg, sub) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmMsg').textContent  = msg;
+  document.getElementById('confirmSub').textContent  = sub;
+  document.getElementById('confirmModal').classList.add('open');
+  return new Promise(res => { _confirmResolve = res; });
+}
+function resolveConfirm(ok) {
+  document.getElementById('confirmModal').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(ok); _confirmResolve = null; }
 }
 
 async function confirmDelete(id, label) {
-  if (!confirm(`「${label}」を削除しますか？\nこの操作は取り消せません。`)) return;
-
-  const gasUrl = localStorage.getItem(STORAGE_KEY_GAS_URL) || '';
+  const ok = await showConfirm('🗑','「'+label+'」を削除しますか？','この操作は取り消せません');
+  if (!ok) return;
+  const gasUrl = localStorage.getItem(GAS_URL_KEY) || '';
   try {
     const res = await fetch(gasUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'deleteReport', id }),
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'deleteReport', id }),
     });
     const result = await res.json();
-    if (result.status !== 'ok') throw new Error(result.message);
-    showToast('削除しました', 'success');
-    // 一覧を再描画してナンバリング更新
+    if (result.status!=='ok') throw new Error(result.message);
+    showToast('削除しました','success');
     await renderDeleteList();
     await loadReports();
   } catch(e) {
-    showToast('削除失敗: ' + e.message, 'error');
+    showToast('削除失敗: '+e.message,'error');
   }
 }
 
-// ===== SETTINGS MODAL =====
+// ================================================================
+// PIN / SETTINGS MODAL
+// ================================================================
 let _pinValue = '';
 
 function openSettings() {
@@ -2758,85 +1803,91 @@ function openSettings() {
 }
 
 function pwModalClose() {
-  document.getElementById('pwModal').classList.remove('open');
+  closeModal('pwModal');
   _pinValue = '';
   updatePinDots();
 }
 
-function pinInput(digit) {
+function pinInput(d) {
   if (_pinValue.length >= 4) return;
-  _pinValue += digit;
+  _pinValue += d;
   updatePinDots();
-  if (_pinValue.length === 4) {
-    setTimeout(() => submitPassword(), 120);
-  }
+  if (_pinValue.length === 4) setTimeout(submitPassword, 120);
 }
 
-function pinDelete() {
-  _pinValue = _pinValue.slice(0, -1);
-  updatePinDots();
-  document.getElementById('pwError').style.display = 'none';
-}
-
-function pinClear() {
-  _pinValue = '';
-  updatePinDots();
-  document.getElementById('pwError').style.display = 'none';
-}
+function pinDelete() { _pinValue = _pinValue.slice(0,-1); updatePinDots(); document.getElementById('pwError').style.display='none'; }
+function pinClear()  { _pinValue = ''; updatePinDots(); document.getElementById('pwError').style.display='none'; }
 
 function updatePinDots() {
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('dot' + i);
-    dot.classList.toggle('filled', i < _pinValue.length);
-    dot.classList.remove('error');
+  for (let i=0;i<4;i++) {
+    const d = document.getElementById('dot'+i);
+    d.classList.toggle('filled', i<_pinValue.length);
+    d.classList.remove('error');
   }
 }
 
-function submitPassword() {
-  if (_pinValue === SETTINGS_PASSWORD) {
-    document.getElementById('pwModal').classList.remove('open');
+async function submitPassword() {
+  // SHA-256ハッシュで比較（平文をソースに持たない）
+  const inputHash = await sha256(_pinValue);
+  const stored    = localStorage.getItem(PIN_HASH_KEY) || '';
+  // ハッシュが未設定の場合はデフォルトPINのハッシュと比較
+  const DEFAULT_HASH = await sha256('3150');
+  const correct = stored ? (inputHash === stored) : (inputHash === DEFAULT_HASH);
+
+  if (correct) {
+    closeModal('pwModal');
     document.getElementById('settingsModal').classList.add('open');
-    _pinValue = '';
-    updatePinDots();
+    _pinValue = ''; updatePinDots();
   } else {
     document.getElementById('pwError').style.display = 'block';
-    for (let i = 0; i < 4; i++) {
-      document.getElementById('dot' + i).classList.add('error');
-    }
-    setTimeout(() => {
-      _pinValue = '';
-      updatePinDots();
-      document.getElementById('pwError').style.display = 'none';
-    }, 800);
+    for (let i=0;i<4;i++) document.getElementById('dot'+i).classList.add('error');
+    setTimeout(() => { _pinValue=''; updatePinDots(); document.getElementById('pwError').style.display='none'; }, 800);
   }
 }
 
-function closeSettingsModal(e) {
-  if (e.target === document.getElementById('settingsModal'))
-    document.getElementById('settingsModal').classList.remove('open');
+async function sha256(str) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-// ===== TOAST =====
-function showToast(msg, type = '') {
+// ================================================================
+// MODAL HELPERS
+// ================================================================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+let _toastTimer = null;
+function showToast(msg, type='') {
+  clearTimeout(_toastTimer);
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast show' + (type ? ' ' + type : '');
-  setTimeout(() => { t.className = 'toast'; }, 3000);
+  t.className   = 'toast show' + (type?' '+type:'');
+  _toastTimer = setTimeout(() => { t.className='toast'; }, 3500);
 }
 
-// ===== UTILS =====
-// "2026-05-29" 形式をUTCズレなくローカル日付で解釈する
+// ================================================================
+// UTILS
+// ================================================================
 function parseDate(str) {
   if (!str) return new Date(NaN);
-  // YYYY-MM-DD 形式はタイムゾーンをローカルとして扱う
   const m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
   return new Date(str);
 }
 
+// escHtml: &, <, >, ", ' の5文字をエスケープ
 function escHtml(s) {
   if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
 }
 </script>
 </body>
