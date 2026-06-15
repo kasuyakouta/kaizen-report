@@ -362,25 +362,17 @@
       <div class="photo-grid">
         <div>
           <div id="beforeDropzone" class="photo-upload-area" onclick="triggerPhotoInput('before','file')">
-            <div class="upload-icon">📷</div><div class="photo-label before">BEFORE</div><div class="upload-text">タップして選択</div>
+            <div class="upload-icon">📷</div><div class="photo-label before">BEFORE</div><div class="upload-text">タップして撮影 / 選択</div>
           </div>
-          <div class="photo-actions">
-            <button class="photo-btn" onclick="triggerPhotoInput('before','camera')">📸 カメラ</button>
-            <button class="photo-btn" onclick="triggerPhotoInput('before','file')">🖼 ファイル</button>
-          </div>
-          <input type="file" id="beforeFileInput"   accept="image/*" style="display:none" onchange="handlePhoto(this,'before')">
-          <input type="file" id="beforeCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'before')">
+
+          <input type="file" id="beforeFileInput" accept="image/*" style="display:none" onchange="handlePhoto(this,'before')">
         </div>
         <div>
           <div id="afterDropzone" class="photo-upload-area" onclick="triggerPhotoInput('after','file')">
-            <div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして選択</div>
+            <div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして撮影 / 選択</div>
           </div>
-          <div class="photo-actions">
-            <button class="photo-btn" onclick="triggerPhotoInput('after','camera')">📸 カメラ</button>
-            <button class="photo-btn" onclick="triggerPhotoInput('after','file')">🖼 ファイル</button>
-          </div>
-          <input type="file" id="afterFileInput"   accept="image/*" style="display:none" onchange="handlePhoto(this,'after')">
-          <input type="file" id="afterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'after')">
+
+          <input type="file" id="afterFileInput" accept="image/*" style="display:none" onchange="handlePhoto(this,'after')">
         </div>
       </div>
     </div>
@@ -509,12 +501,8 @@
       <div id="editAfterDropzone" class="edit-modal-photo-area" onclick="triggerEditPhoto('file')">
         <div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして写真を選択</div>
       </div>
-      <div class="edit-photo-actions">
-        <button class="photo-btn" onclick="triggerEditPhoto('camera')">📸 カメラで撮影</button>
-        <button class="photo-btn" onclick="triggerEditPhoto('file')">🖼 ファイルを選択</button>
-      </div>
-      <input type="file" id="editAfterFileInput"   accept="image/*" style="display:none" onchange="handleEditPhoto(this)">
-      <input type="file" id="editAfterCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleEditPhoto(this)">
+
+      <input type="file" id="editAfterFileInput" accept="image/*" style="display:none" onchange="handleEditPhoto(this)">
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;">改善内容の追記（任意）</label>
         <textarea id="editImprovementAppend" placeholder="完了時のコメントなど..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
@@ -870,8 +858,8 @@ function discardDraft() {
 const photoData = { before: null, after: null };
 const MAX_PX = 1200, QUALITY = 0.82;
 
-function triggerPhotoInput(type, mode) {
-  document.getElementById(mode==='camera' ? `${type}CameraInput` : `${type}FileInput`).click();
+function triggerPhotoInput(type) {
+  document.getElementById(`${type}FileInput`).click();
 }
 
 function handlePhoto(input, type) {
@@ -901,8 +889,8 @@ function removePhoto(type, e) {
   const dz=document.getElementById(`${type}Dropzone`);
   dz.classList.remove('has-image');
   const lbl=type==='before'?'<div class="photo-label before">BEFORE</div>':'<div class="photo-label after">AFTER</div>';
-  dz.innerHTML=`<div class="upload-icon">📷</div>${lbl}<div class="upload-text">タップして選択</div>`;
-  dz.onclick=()=>triggerPhotoInput(type,'file');
+  dz.innerHTML=`<div class="upload-icon">📷</div>${lbl}<div class="upload-text">タップして撮影 / 選択</div>`;
+  dz.onclick=()=>triggerPhotoInput(type);
 }
 
 // ================================================================
@@ -1171,7 +1159,7 @@ function openEditModal(idx){
 }
 
 function closeEditModalEl(){ document.getElementById('editModal').classList.remove('open'); }
-function triggerEditPhoto(mode){ document.getElementById(mode==='camera'?'editAfterCameraInput':'editAfterFileInput').click(); }
+function triggerEditPhoto(){ document.getElementById('editAfterFileInput').click(); }
 
 function handleEditPhoto(input){
   const file=input.files[0]; if(!file) return;
@@ -1196,7 +1184,7 @@ function clearEditPhoto(e){
   const dz=document.getElementById('editAfterDropzone');
   dz.classList.remove('has-image');
   dz.innerHTML='<div class="upload-icon">📷</div><div class="photo-label after">AFTER</div><div class="upload-text">タップして写真を選択</div>';
-  dz.onclick=()=>triggerEditPhoto('file');
+  dz.onclick=()=>triggerEditPhoto('camera');
 }
 
 async function submitEditReport(){
