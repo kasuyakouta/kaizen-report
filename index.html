@@ -1110,7 +1110,7 @@ function renderEditBeforeThumb(idx,src,loading){
   if(loading){
     item.innerHTML='<div class="photo-processing"><span class="spinner" style="border-top-color:var(--yellow);border-color:var(--border);width:24px;height:24px;border-width:3px;"></span></div>';
   } else {
-    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editBeforePhotosData,'+idx+','before')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" style="background:var(--yellow);" onclick="removeEditBeforePhoto('+idx+',event)">&#10005;</button>';
+    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editBeforePhotosData,'+idx+',\'before\')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" style="background:var(--yellow);" onclick="removeEditBeforePhoto('+idx+',event)">&#10005;</button>';
   }
 }
 
@@ -1170,7 +1170,7 @@ function renderEditAfterThumb(idx,src,loading){
   if(loading){
     item.innerHTML='<div class="photo-processing"><span class="spinner" style="border-top-color:var(--green);border-color:var(--border);width:24px;height:24px;border-width:3px;"></span></div>';
   } else {
-    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editPhotosData,'+idx+','after')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" onclick="removeEditPhoto('+idx+',event)">&#10005;</button>';
+    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editPhotosData,'+idx+',\'after\')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" onclick="removeEditPhoto('+idx+',event)">&#10005;</button>';
   }
 }
 
@@ -1204,9 +1204,7 @@ async function submitEditReport(){
 
   const append=appendText;
   const newImp=_editTargetReport.improvement
-    ?(append?_editTargetReport.improvement+'
-
-【追記】'+append:_editTargetReport.improvement)
+    ?(append?_editTargetReport.improvement+'\n\n【追記】'+append:_editTargetReport.improvement)
     :(append);
 
   // ビフォー・アフター写真フィールドを組み立て
