@@ -398,26 +398,37 @@ tr:hover td{background:var(--surface2)}
 <!-- EDIT MODAL -->
 <div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeEditModalEl()">
   <div class="modal" style="max-width:480px;">
-    <div class="modal-header"><div class="modal-title" id="editModalTitle">&#9999;&#65039; アフター写真を追加</div><button class="modal-close" onclick="closeEditModalEl()">&#10005;</button></div>
+    <div class="modal-header"><div class="modal-title" id="editModalTitle">&#9999;&#65039; 報告を編集</div><button class="modal-close" onclick="closeEditModalEl()">&#10005;</button></div>
     <div class="modal-body">
-      <div id="editBeforeSection" style="display:none;margin-bottom:16px;">
-        <div class="edit-section-label" style="color:var(--yellow);">&#128247; BEFORE（登録済み）</div>
-        <div class="photo-thumbs-row" id="editBeforeThumbsRow" style="min-height:72px;"></div>
+      <!-- BEFORE（追加・削除可能） -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="edit-section-label" style="color:var(--yellow);margin-bottom:0;">&#128247; BEFORE（最大5枚）</div>
+          <span style="font-size:11px;color:var(--text3);font-weight:600;" id="editBeforeCountLabel">0 / 5</span>
+        </div>
+        <div class="photo-thumbs-row" id="editBeforeThumbsRow" style="margin-bottom:4px;">
+          <button class="photo-add-btn" id="editBeforeAddBtn" onclick="triggerEditBeforePhoto()" style="border-color:#D97706;" title="ビフォー写真を追加">+</button>
+        </div>
+        <input type="file" id="editBeforeFileInput" accept="image/*" multiple style="display:none" onchange="handleEditBeforePhotos(this)">
       </div>
-      <div class="edit-section-label" style="color:var(--green);">&#128248; AFTER（追加する写真 — 最大5枚）</div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:8px;">
-        <span style="font-size:11px;color:var(--text3);font-weight:600;" id="editAfterCountLabel">0 / 5</span>
+      <!-- AFTER（追加・削除可能） -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div class="edit-section-label" style="color:var(--green);margin-bottom:0;">&#128248; AFTER（最大5枚）</div>
+          <span style="font-size:11px;color:var(--text3);font-weight:600;" id="editAfterCountLabel">0 / 5</span>
+        </div>
+        <div class="photo-thumbs-row" id="editAfterThumbsRow">
+          <button class="photo-add-btn" id="editAfterAddBtn" onclick="triggerEditPhoto()">+</button>
+        </div>
+        <input type="file" id="editAfterFileInput" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this)">
       </div>
-      <div class="photo-thumbs-row" id="editAfterThumbsRow" style="margin-bottom:14px;">
-        <button class="photo-add-btn" id="editAfterAddBtn" onclick="triggerEditPhoto()">＋</button>
-      </div>
-      <input type="file" id="editAfterFileInput" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this)">
+      <!-- 改善内容追記 -->
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;">改善内容の追記（任意）</label>
         <textarea id="editImprovementAppend" placeholder="完了時のコメントなど..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
       </div>
-      <button class="edit-submit-btn" id="editSubmitBtn" onclick="submitEditReport()"><span id="editSubmitText">&#9989; アフター写真を登録して完了にする</span></button>
-      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;">※ ステータスが「進行中」→「完了」に更新されます</p>
+      <button class="edit-submit-btn" id="editSubmitBtn" onclick="submitEditReport()"><span id="editSubmitText">&#9989; 変更を保存する</span></button>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;">&#9432; アフター写真を追加するとステータスが「完了」に更新されます</p>
     </div>
   </div>
 </div>
@@ -1028,37 +1039,96 @@ function openDetailLightbox(reportIdx, type, photoIdx) {
 function closeDetailModal(){document.getElementById('detailModal').classList.remove('open');}
 
 // ================================================================
-// EDIT MODAL
+// EDIT MODAL（ビフォー追加・削除 / アフター追加・削除）
 // ================================================================
-let _editPhotosData=[],_editTargetReport=null;
+let _editBeforePhotosData=[], _editPhotosData=[], _editTargetReport=null;
 
 function openEditModal(idx){
   const r=filteredReports[idx]; if(!r) return;
-  _editTargetReport=r; _editPhotosData=[];
-  document.getElementById('editModalTitle').textContent='&#9999;&#65039; No.'+r.no+' '+r.customer+' — アフター追加';
-  const beforePhotos=getPhotos(r,'before');
-  const bSection=document.getElementById('editBeforeSection');
+  _editTargetReport=r;
+
+  // --- BEFORE: 既存写真を配列に読み込む ---
+  _editBeforePhotosData = getPhotos(r,'before').slice(); // コピー
   const bRow=document.getElementById('editBeforeThumbsRow');
-  bRow.innerHTML='';
-  if(beforePhotos.length){
-    beforePhotos.forEach((src,i)=>{
-      const item=document.createElement('div');
-      item.className='photo-thumb-item';
-      item.innerHTML='<img src="'+src+'" onclick="openLightbox(getPhotos(_editTargetReport,\'before\'),'+i+',\'before\')" style="cursor:pointer;" title="クリックで拡大">';
-      bRow.appendChild(item);
-    });
-    bSection.style.display='block';
-  } else {
-    bSection.style.display='none';
-  }
-  document.getElementById('editAfterThumbsRow').querySelectorAll('.photo-thumb-item').forEach(el=>el.remove());
-  document.getElementById('editAfterCountLabel').textContent='0 / '+MAX_PHOTOS;
-  document.getElementById('editAfterAddBtn').classList.remove('hidden');
+  bRow.querySelectorAll('.photo-thumb-item').forEach(el=>el.remove());
+  _editBeforePhotosData.forEach((src,i)=>renderEditBeforeThumb(i,src,false));
+  updateEditBeforeUI();
+
+  // --- AFTER: 既存写真を配列に読み込む ---
+  _editPhotosData = getPhotos(r,'after').slice();
+  const aRow=document.getElementById('editAfterThumbsRow');
+  aRow.querySelectorAll('.photo-thumb-item').forEach(el=>el.remove());
+  _editPhotosData.forEach((src,i)=>renderEditAfterThumb(i,src,false));
+  updateEditAfterUI();
+
+  document.getElementById('editModalTitle').textContent='&#9999;&#65039; No.'+r.no+' '+r.customer+' — 編集';
   document.getElementById('editImprovementAppend').value='';
   document.getElementById('editModal').classList.add('open');
 }
 
 function closeEditModalEl(){document.getElementById('editModal').classList.remove('open');}
+
+// ---- BEFORE ----
+function triggerEditBeforePhoto(){document.getElementById('editBeforeFileInput').click();}
+
+function handleEditBeforePhotos(input){
+  const files=Array.from(input.files); if(!files.length) return;
+  const remaining=MAX_PHOTOS-_editBeforePhotosData.length;
+  if(remaining<=0){showToast('すでに'+MAX_PHOTOS+'枚登録済みです','');input.value='';return;}
+  const toProcess=files.slice(0,remaining);
+  if(files.length>remaining) showToast('最大'+MAX_PHOTOS+'枚です。'+remaining+'枚のみ追加します','');
+  toProcess.forEach(file=>{
+    const idx=_editBeforePhotosData.length;
+    _editBeforePhotosData.push(null);
+    renderEditBeforeThumb(idx,null,true);
+    resizeEditBeforePhoto(file,idx);
+  });
+  input.value='';
+}
+
+function resizeEditBeforePhoto(file,idx){
+  const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{
+    URL.revokeObjectURL(url);
+    let w=img.naturalWidth,h=img.naturalHeight;
+    if(w>MAX_PX||h>MAX_PX){if(w>h){h=Math.round(h*MAX_PX/w);w=MAX_PX;}else{w=Math.round(w*MAX_PX/h);h=MAX_PX;}}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    _editBeforePhotosData[idx]=cv.toDataURL('image/jpeg',QUALITY);
+    renderEditBeforeThumb(idx,_editBeforePhotosData[idx],false);
+    updateEditBeforeUI();
+  };
+  img.onerror=()=>{_editBeforePhotosData.splice(idx,1);updateEditBeforeUI();showToast('画像の読み込みに失敗しました','error');};
+  img.src=url;
+}
+
+function renderEditBeforeThumb(idx,src,loading){
+  const row=document.getElementById('editBeforeThumbsRow');
+  const addBtn=document.getElementById('editBeforeAddBtn');
+  let item=row.querySelector('[data-bidx="'+idx+'"]');
+  if(!item){item=document.createElement('div');item.className='photo-thumb-item';item.dataset.bidx=idx;row.insertBefore(item,addBtn);}
+  if(loading){
+    item.innerHTML='<div class="photo-processing"><span class="spinner" style="border-top-color:var(--yellow);border-color:var(--border);width:24px;height:24px;border-width:3px;"></span></div>';
+  } else {
+    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editBeforePhotosData,'+idx+','before')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" style="background:var(--yellow);" onclick="removeEditBeforePhoto('+idx+',event)">&#10005;</button>';
+  }
+}
+
+function removeEditBeforePhoto(idx,e){
+  if(e) e.stopPropagation();
+  _editBeforePhotosData.splice(idx,1);
+  document.getElementById('editBeforeThumbsRow').querySelectorAll('.photo-thumb-item').forEach(el=>el.remove());
+  _editBeforePhotosData.forEach((src,i)=>renderEditBeforeThumb(i,src,false));
+  updateEditBeforeUI();
+}
+
+function updateEditBeforeUI(){
+  const count=_editBeforePhotosData.filter(Boolean).length;
+  document.getElementById('editBeforeCountLabel').textContent=count+' / '+MAX_PHOTOS;
+  document.getElementById('editBeforeAddBtn').classList.toggle('hidden',count>=MAX_PHOTOS);
+}
+
+// ---- AFTER ----
 function triggerEditPhoto(){document.getElementById('editAfterFileInput').click();}
 
 function handleEditPhotos(input){
@@ -1095,12 +1165,12 @@ function resizeEditPhoto(file,idx){
 function renderEditAfterThumb(idx,src,loading){
   const row=document.getElementById('editAfterThumbsRow');
   const addBtn=document.getElementById('editAfterAddBtn');
-  let item=row.querySelector('[data-idx="'+idx+'"]');
-  if(!item){item=document.createElement('div');item.className='photo-thumb-item';item.dataset.idx=idx;row.insertBefore(item,addBtn);}
+  let item=row.querySelector('[data-aidx="'+idx+'"]');
+  if(!item){item=document.createElement('div');item.className='photo-thumb-item';item.dataset.aidx=idx;row.insertBefore(item,addBtn);}
   if(loading){
     item.innerHTML='<div class="photo-processing"><span class="spinner" style="border-top-color:var(--green);border-color:var(--border);width:24px;height:24px;border-width:3px;"></span></div>';
   } else {
-    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editPhotosData,'+idx+',\'after\')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" onclick="removeEditPhoto('+idx+',event)">&#10005;</button>';
+    item.innerHTML='<img src="'+src+'" onclick="openLightbox(_editPhotosData,'+idx+','after')" style="cursor:pointer;" title="クリックで拡大"><button class="photo-thumb-remove" onclick="removeEditPhoto('+idx+',event)">&#10005;</button>';
   }
 }
 
@@ -1119,23 +1189,45 @@ function updateEditAfterUI(){
 }
 
 async function submitEditReport(){
-  const validPhotos=_editPhotosData.filter(Boolean);
-  if(!validPhotos.length){showToast('アフター写真を1枚以上選択してください','error');return;}
   if(!_editTargetReport.id){showToast('このデータはIDがなく更新できません','error');return;}
+
+  // 変更チェック（ビフォー・アフターどちらかに変更があること）
+  const beforeOrig=getPhotos(_editTargetReport,'before');
+  const afterOrig=getPhotos(_editTargetReport,'after');
+  const beforeChanged=JSON.stringify(_editBeforePhotosData.filter(Boolean))!==JSON.stringify(beforeOrig);
+  const afterChanged=JSON.stringify(_editPhotosData.filter(Boolean))!==JSON.stringify(afterOrig);
+  const appendText=document.getElementById('editImprovementAppend').value.trim();
+  if(!beforeChanged&&!afterChanged&&!appendText){showToast('変更がありません','');return;}
+
   const btn=document.getElementById('editSubmitBtn'),txt=document.getElementById('editSubmitText');
-  btn.disabled=true; txt.innerHTML='<span class="spinner"></span> 送信中...';
-  const append=document.getElementById('editImprovementAppend').value.trim();
-  const newImp=_editTargetReport.improvement?(_editTargetReport.improvement+(append?'\n\n【完了時追記】'+append:'')):(append);
+  btn.disabled=true; txt.innerHTML='<span class="spinner"></span> 保存中...';
+
+  const append=appendText;
+  const newImp=_editTargetReport.improvement
+    ?(append?_editTargetReport.improvement+'
+
+【追記】'+append:_editTargetReport.improvement)
+    :(append);
+
+  // ビフォー・アフター写真フィールドを組み立て
   const photoPayload={};
+  BEFORE_KEYS.forEach((k,i)=>{photoPayload[k]=_editBeforePhotosData[i]||'';});
   AFTER_KEYS.forEach((k,i)=>{photoPayload[k]=_editPhotosData[i]||'';});
+
+  // アフター写真があれば完了、なければ現状維持
+  const hasAfter=_editPhotosData.filter(Boolean).length>0;
+  const newStatus=hasAfter?'completed':(_editTargetReport.status||'in-progress');
+
   try{
-    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'updateReport',id:_editTargetReport.id,...photoPayload,status:'completed',improvement:newImp})});
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'updateReport',id:_editTargetReport.id,...photoPayload,status:newStatus,improvement:newImp})});
     const result=await res.json();
     if(result.status!=='ok') throw new Error(result.message);
-    showToast('アフター写真を登録しました！完了にしました &#9989;','success');
+    const msg=hasAfter?'変更を保存しました！完了にしました &#9989;':'ビフォー写真を更新しました &#9989;';
+    showToast(msg,'success');
     closeEditModalEl(); await loadReports();
   }catch(err){showToast('更新に失敗しました: '+err.message,'error');}
-  finally{btn.disabled=false;txt.innerHTML='&#9989; アフター写真を登録して完了にする';}
+  finally{btn.disabled=false;txt.innerHTML='&#9989; 変更を保存する';}
 }
 
 // ================================================================
