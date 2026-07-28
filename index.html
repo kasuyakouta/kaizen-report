@@ -1212,17 +1212,25 @@ async function submitEditReport(){
   BEFORE_KEYS.forEach((k,i)=>{photoPayload[k]=_editBeforePhotosData[i]||'';});
   AFTER_KEYS.forEach((k,i)=>{photoPayload[k]=_editPhotosData[i]||'';});
 
-  // アフター写真があれば完了、なければ現状維持
+  // 写真が1枚もない場合は確認ダイアログを出す
+  const hasBefore=_editBeforePhotosData.filter(Boolean).length>0;
   const hasAfter=_editPhotosData.filter(Boolean).length>0;
-  const newStatus=hasAfter?'completed':(_editTargetReport.status||'in-progress');
+  if(!hasBefore&&!hasAfter){
+    btn.disabled=false;
+    const ok=await showConfirm('📷','写真なしですが、本当に完了にしますか？','ビフォー・アフターともに写真が登録されていません');
+    if(!ok) return;
+    btn.disabled=true; txt.innerHTML='<span class="spinner"></span> 保存中...';
+  }
+
+  // 写真の有無にかかわらず「完了」に更新
+  const newStatus='completed';
 
   try{
     const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({action:'updateReport',id:_editTargetReport.id,...photoPayload,status:newStatus,improvement:newImp})});
     const result=await res.json();
     if(result.status!=='ok') throw new Error(result.message);
-    const msg=hasAfter?'変更を保存しました！完了にしました &#9989;':'ビフォー写真を更新しました &#9989;';
-    showToast(msg,'success');
+    showToast('変更を保存しました！完了にしました &#9989;','success');
     closeEditModalEl(); await loadReports();
   }catch(err){showToast('更新に失敗しました: '+err.message,'error');}
   finally{btn.disabled=false;txt.innerHTML='&#9989; 変更を保存する';}
