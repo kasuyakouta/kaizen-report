@@ -792,27 +792,35 @@ function resizePhoto(file, type) {
   const img=new Image(), url=URL.createObjectURL(file);
   img.onload=()=>{
     URL.revokeObjectURL(url);
-    let w=img.naturalWidth,h=img.naturalHeight;
-    if(w>MAX_PX||h>MAX_PX){if(w>h){h=Math.round(h*MAX_PX/w);w=MAX_PX;}else{w=Math.round(w*MAX_PX/h);h=MAX_PX;}}
-    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-    cv.getContext('2d').drawImage(img,0,0,w,h);
-    const b64=cv.toDataURL('image/jpeg',QUALITY);
-    photoData[type].push(b64);
-    loadingCnt[type]--;
-    // スピナー削除
-    const row=document.getElementById(type+'ThumbsRow');
-    const sp=row.querySelector('.photo-thumb-loading');
-    if(sp) sp.remove();
-    // サムネイル再構築
-    rebuildFormThumbs(type);
+    try {
+      let w=img.naturalWidth,h=img.naturalHeight;
+      if(w>MAX_PX||h>MAX_PX){if(w>h){h=Math.round(h*MAX_PX/w);w=MAX_PX;}else{w=Math.round(w*MAX_PX/h);h=MAX_PX;}}
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const b64=cv.toDataURL('image/jpeg',QUALITY);
+      photoData[type].push(b64);
+      loadingCnt[type]--;
+      const row=document.getElementById(type+'ThumbsRow');
+      const sp=row.querySelector('.photo-thumb-loading');
+      if(sp) sp.remove();
+      rebuildFormThumbs(type);
+    } catch(e) {
+      loadingCnt[type]--;
+      const row=document.getElementById(type+'ThumbsRow');
+      const sp=row.querySelector('.photo-thumb-loading');
+      if(sp) sp.remove();
+      updatePhotoUI(type);
+      showToast('画像の変換に失敗しました: '+e.message,'error');
+    }
   };
   img.onerror=()=>{
+    URL.revokeObjectURL(url);
     loadingCnt[type]--;
     const row=document.getElementById(type+'ThumbsRow');
     const sp=row.querySelector('.photo-thumb-loading');
     if(sp) sp.remove();
     updatePhotoUI(type);
-    showToast('画像の読み込みに失敗しました','error');
+    showToast('画像の読み込みに失敗しました（形式を確認してください）','error');
   };
   img.src=url;
 }
@@ -865,6 +873,7 @@ async function submitReport() {
   if(!customer){showToast('顧客名を入力してください','error');return;}
   if(!unit){showToast('部署名を選択してください','error');return;}
   if(!staff){showToast('担当者を選択してください','error');return;}
+  if(loadingCnt.before>0||loadingCnt.after>0){showToast('写真の処理中です。少し待ってから送信してください','');return;}
   if(!navigator.onLine){showToast('オフラインのため送信できません','error');saveDraft();return;}
 
   const btn=document.getElementById('submitBtn'),txt=document.getElementById('submitText');
@@ -1191,26 +1200,36 @@ function resizeEditPhoto(file, type) {
   const img=new Image(), url=URL.createObjectURL(file);
   img.onload=()=>{
     URL.revokeObjectURL(url);
-    let w=img.naturalWidth,h=img.naturalHeight;
-    if(w>MAX_PX||h>MAX_PX){if(w>h){h=Math.round(h*MAX_PX/w);w=MAX_PX;}else{w=Math.round(w*MAX_PX/h);h=MAX_PX;}}
-    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-    cv.getContext('2d').drawImage(img,0,0,w,h);
-    const b64=cv.toDataURL('image/jpeg',QUALITY);
-    const arr=type==='before'?_editBefore:_editAfter;
-    arr.push(b64);
-    if(type==='before') _editLoadB--; else _editLoadA--;
-    const row=document.getElementById(type==='before'?'editBeforeRow':'editAfterRow');
-    const sp=row.querySelector('.photo-thumb-loading');
-    if(sp) sp.remove();
-    rebuildEditThumbs(type);
+    try {
+      let w=img.naturalWidth,h=img.naturalHeight;
+      if(w>MAX_PX||h>MAX_PX){if(w>h){h=Math.round(h*MAX_PX/w);w=MAX_PX;}else{w=Math.round(w*MAX_PX/h);h=MAX_PX;}}
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const b64=cv.toDataURL('image/jpeg',QUALITY);
+      const arr=type==='before'?_editBefore:_editAfter;
+      arr.push(b64);
+      if(type==='before') _editLoadB--; else _editLoadA--;
+      const row=document.getElementById(type==='before'?'editBeforeRow':'editAfterRow');
+      const sp=row.querySelector('.photo-thumb-loading');
+      if(sp) sp.remove();
+      rebuildEditThumbs(type);
+    } catch(e) {
+      if(type==='before') _editLoadB--; else _editLoadA--;
+      const row=document.getElementById(type==='before'?'editBeforeRow':'editAfterRow');
+      const sp=row.querySelector('.photo-thumb-loading');
+      if(sp) sp.remove();
+      updateEditUI(type);
+      showToast('画像の変換に失敗しました: '+e.message,'error');
+    }
   };
   img.onerror=()=>{
+    URL.revokeObjectURL(url);
     if(type==='before') _editLoadB--; else _editLoadA--;
     const row=document.getElementById(type==='before'?'editBeforeRow':'editAfterRow');
     const sp=row.querySelector('.photo-thumb-loading');
     if(sp) sp.remove();
     updateEditUI(type);
-    showToast('画像の読み込みに失敗しました','error');
+    showToast('画像の読み込みに失敗しました（形式を確認してください）','error');
   };
   img.src=url;
 }
