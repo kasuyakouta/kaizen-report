@@ -488,7 +488,7 @@ const GAS    = 'https://script.google.com/macros/s/AKfycbw3x_oa9bvka9SlpuKDZ5U1Y
 const DKEY   = 'kz_draft';
 const CKEY   = 'kz_cache';
 const PKEY   = 'kz_pin';
-const MPHOTOS = 5;
+const MPHOTOS = 3;
 const MAXPX  = 1200;
 const QUAL   = 0.82;
 const BK = ['beforePhoto','beforePhoto2','beforePhoto3','beforePhoto4','beforePhoto5'];
@@ -1142,11 +1142,11 @@ async function doSave(mode) {
     if(eLoadB>0||eLoadA>0){ toast('写真の処理中です。少し待ってください'); return; }
     if(!eTarget||!eTarget.id){ toast('IDがなく更新できません','ng'); return; }
 
-    // 変更があった写真グループを特定
+    // 変更があった写真グループを特定（参照比較で軽量化）
     const bOrig=getPhotos(eTarget,'b');
     const aOrig=getPhotos(eTarget,'a');
-    const bChg=JSON.stringify(eBefore)!==JSON.stringify(bOrig);
-    const aChg=JSON.stringify(eAfter)!==JSON.stringify(aOrig);
+    const bChg=photoArrChanged(eBefore,bOrig);
+    const aChg=photoArrChanged(eAfter,aOrig);
     const app=document.getElementById('eApp').value.trim();
 
     if(mode==='keep'&&!bChg&&!aChg&&!app){ toast('変更がありません'); return; }
@@ -1160,6 +1160,10 @@ async function doSave(mode) {
     const newImp=eTarget.improvement
       ?(app?eTarget.improvement+'\n\n【追記】'+app:eTarget.improvement):(app);
     const newSts=mode==='complete'?'completed':(eTarget.status||'in-progress');
+
+    // ── デプロイ確認 ──
+    const gasOk = await verifyGasDeployment();
+    if(!gasOk) return;
 
     // ── STEP 1: メタデータのみ先に送信（写真なし・必ず高速完了） ──
     const r1=await gasPost({action:'updateReport',id:eTarget.id,improvement:newImp,status:newSts});
@@ -1402,8 +1406,45 @@ async function gas(action){
 }
 
 async function gasPost(payload){
-  const r=await fetch(GAS,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-  return r.json();
+  let resp;
+  try {
+    resp = await fetch(GAS, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    // fetchそのものが失敗（ネットワーク/CORS）
+    throw new Error('通信失敗(' + (payload.action||'?') + '): ' + e.message);
+  }
+  // レスポンスをテキストで受け取ってからJSONパース
+  const text = await resp.text();
+  try { return JSON.parse(text); }
+  catch(e) { throw new Error('レスポンス不正: ' + text.slice(0, 100)); }
+}
+
+// 写真配列の変更検出（参照比較・JSON.stringify不使用でメモリ節約）
+function photoArrChanged(current, original) {
+  if(current.length !== original.length) return true;
+  for(let i=0;i<current.length;i++) {
+    if(current[i] !== original[i]) return true; // 同じ文字列オブジェクトなら O(1)
+  }
+  return false;
+}
+
+// GASデプロイ確認（初回のみ）
+let _gasVerified = false;
+async function verifyGasDeployment() {
+  if(_gasVerified) return true;
+  try {
+    const r = await gasPost({action:'ping'});
+    if(r.ver === 'v6') { _gasVerified = true; return true; }
+    toast('GASが古いバージョンです。再デプロイしてください', 'ng');
+    return false;
+  } catch(e) {
+    toast('GAS接続確認失敗: ' + e.message, 'ng');
+    return false;
+  }
 }
 
 // ============================================================
