@@ -1132,50 +1132,55 @@ async function doSave(mode) {
   if(_saving) return;
   _saving = true;
 
-  // 押されたボタンのみスピナー。もう一方はdisableのみ（UX改善）
-  const isSave = (mode==='keep');
-  document.getElementById('eSave').disabled = true;
-  document.getElementById('eComp').disabled = true;
-  document.getElementById('eSaveTxt').innerHTML = isSave ? '<span class="spin"></span> 保存中...' : '&#128190; 保存する';
-  document.getElementById('eCompTxt').innerHTML = isSave ? '&#9989; 完了にする' : '<span class="spin"></span> 保存中...';
+  const isSave=(mode==='keep');
+  document.getElementById('eSave').disabled=true;
+  document.getElementById('eComp').disabled=true;
+  document.getElementById('eSaveTxt').innerHTML=isSave?'<span class="spin"></span> 保存中...':'&#128190; 保存する';
+  document.getElementById('eCompTxt').innerHTML=isSave?'&#9989; 完了にする':'<span class="spin"></span> 保存中...';
 
   try {
     if(eLoadB>0||eLoadA>0){ toast('写真の処理中です。少し待ってください'); return; }
     if(!eTarget||!eTarget.id){ toast('IDがなく更新できません','ng'); return; }
 
-    // 変更があった写真グループのみ特定（ペイロード最小化・タイムアウト防止）
-    const bOrig = getPhotos(eTarget,'b');
-    const aOrig = getPhotos(eTarget,'a');
-    const bChg  = JSON.stringify(eBefore) !== JSON.stringify(bOrig);
-    const aChg  = JSON.stringify(eAfter)  !== JSON.stringify(aOrig);
+    // 変更があった写真グループを特定
+    const bOrig=getPhotos(eTarget,'b');
+    const aOrig=getPhotos(eTarget,'a');
+    const bChg=JSON.stringify(eBefore)!==JSON.stringify(bOrig);
+    const aChg=JSON.stringify(eAfter)!==JSON.stringify(aOrig);
+    const app=document.getElementById('eApp').value.trim();
 
-    // 「保存する」: 変更なしならスキップ
-    if(mode==='keep'){
-      const app=document.getElementById('eApp').value.trim();
-      if(!bChg&&!aChg&&!app){ toast('変更がありません'); return; }
-    }
+    if(mode==='keep'&&!bChg&&!aChg&&!app){ toast('変更がありません'); return; }
 
-    // 「完了にする」: 写真が1枚もない場合は確認
-    if(mode==='complete' && !eBefore.length && !eAfter.length){
+    if(mode==='complete'&&!eBefore.length&&!eAfter.length){
       const ok=await showConfirm('📷','写真なしですが、本当に完了にしますか？',
         'ビフォー・アフターともに写真が登録されていません','完了にする','#16A34A');
       if(!ok) return;
     }
 
-    const app=document.getElementById('eApp').value.trim();
     const newImp=eTarget.improvement
-      ?(app?eTarget.improvement+'\n\n【追記】'+app:eTarget.improvement)
-      :(app);
+      ?(app?eTarget.improvement+'\n\n【追記】'+app:eTarget.improvement):(app);
+    const newSts=mode==='complete'?'completed':(eTarget.status||'in-progress');
 
-    // ★ 変更があったグループのみペイロードに含める
-    //    変更なしの写真はGAS側も書き込まず、タイムアウトを根本的に回避
-    const p={action:'updateReport', id:eTarget.id, improvement:newImp};
-    if(bChg) BK.forEach((k,i)=>{ p[k]=eBefore[i]||''; });
-    if(aChg) AK.forEach((k,i)=>{ p[k]=eAfter[i]||''; });
-    p.status = mode==='complete' ? 'completed' : (eTarget.status||'in-progress');
+    // ── STEP 1: メタデータのみ先に送信（写真なし・必ず高速完了） ──
+    const r1=await gasPost({action:'updateReport',id:eTarget.id,improvement:newImp,status:newSts});
+    if(r1.status!=='ok') throw new Error('メタデータ更新失敗: '+(r1.message||'不明'));
 
-    const r=await gasPost(p);
-    if(r.status!=='ok') throw new Error(r.message||'更新エラー');
+    // ── STEP 2: 写真を1枚1セルずつ個別送信（タイムアウト不可能な設計） ──
+    //    各リクエストは1セル分のみ。GAS実行時間は常に1〜2秒以内
+    if(bChg){
+      for(let i=0;i<BK.length;i++){
+        const val=eBefore[i]||'';
+        const r=await gasPost({action:'updatePhoto',id:eTarget.id,key:BK[i],value:val});
+        if(r.status!=='ok') throw new Error('BEFORE写真'+(i+1)+'の更新失敗: '+(r.message||'不明'));
+      }
+    }
+    if(aChg){
+      for(let i=0;i<AK.length;i++){
+        const val=eAfter[i]||'';
+        const r=await gasPost({action:'updatePhoto',id:eTarget.id,key:AK[i],value:val});
+        if(r.status!=='ok') throw new Error('AFTER写真'+(i+1)+'の更新失敗: '+(r.message||'不明'));
+      }
+    }
 
     toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
     closeMod('editOv');
@@ -1184,12 +1189,11 @@ async function doSave(mode) {
   } catch(e){
     toast('更新に失敗しました: '+e.message,'ng');
   } finally {
-    // ★ 成功・失敗・例外すべての場合にロック解除とボタン復元
-    _saving = false;
-    document.getElementById('eSave').disabled = false;
-    document.getElementById('eComp').disabled = false;
-    document.getElementById('eSaveTxt').innerHTML = '&#128190; 保存する';
-    document.getElementById('eCompTxt').innerHTML = '&#9989; 完了にする';
+    _saving=false;
+    document.getElementById('eSave').disabled=false;
+    document.getElementById('eComp').disabled=false;
+    document.getElementById('eSaveTxt').innerHTML='&#128190; 保存する';
+    document.getElementById('eCompTxt').innerHTML='&#9989; 完了にする';
   }
 }
 
