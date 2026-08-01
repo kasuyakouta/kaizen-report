@@ -1266,18 +1266,18 @@ function updateEditUI(type) {
 
 // 「保存する」— ステータス変えずに写真・追記のみ保存
 async function saveEdit() {
+  if(_editLoadB>0||_editLoadA>0){showToast('写真の処理中です。少し待ってから保存してください','');return;}
   if(!_editTarget||!_editTarget.id){showToast('IDがなく更新できません','error');return;}
-  const beforeOrig=getPhotos(_editTarget,'before');
-  const afterOrig=getPhotos(_editTarget,'after');
-  const sameB=JSON.stringify(_editBefore)===JSON.stringify(beforeOrig);
-  const sameA=JSON.stringify(_editAfter)===JSON.stringify(afterOrig);
   const appendText=document.getElementById('editAppend').value.trim();
-  if(sameB&&sameA&&!appendText){showToast('変更がありません','');return;}
+  const beforeChanged=JSON.stringify(_editBefore)!==JSON.stringify(getPhotos(_editTarget,'before'));
+  const afterChanged=JSON.stringify(_editAfter)!==JSON.stringify(getPhotos(_editTarget,'after'));
+  if(!beforeChanged&&!afterChanged&&!appendText){showToast('変更がありません','');return;}
   await doEditSave('save');
 }
 
 // 「完了にする」— ステータスを completed に変更
 async function completeEdit() {
+  if(_editLoadB>0||_editLoadA>0){showToast('写真の処理中です。少し待ってから完了にしてください','');return;}
   if(!_editTarget||!_editTarget.id){showToast('IDがなく更新できません','error');return;}
   // 写真が1枚もない場合は確認
   if(!_editBefore.length&&!_editAfter.length){
@@ -1295,17 +1295,10 @@ async function doEditSave(mode) {
     :(appendText);
   const payload={action:'updateReport',id:_editTarget.id,improvement:newImp};
 
-  // ★ 変更のあった写真フィールドのみペイロードに含める
-  //    変更なしの写真は送信しないことでペイロードを最小化し、
-  //    GAS側も変更のないセルを一切読み書きしないためタイムアウトを回避
-  const beforeOrig=getPhotos(_editTarget,'before');
-  const afterOrig=getPhotos(_editTarget,'after');
-  if(JSON.stringify(_editBefore)!==JSON.stringify(beforeOrig)){
-    BEFORE_KEYS.forEach((k,i)=>{payload[k]=_editBefore[i]||'';});
-  }
-  if(JSON.stringify(_editAfter)!==JSON.stringify(afterOrig)){
-    AFTER_KEYS.forEach((k,i)=>{payload[k]=_editAfter[i]||'';});
-  }
+  // 全写真フィールドを常に送信（比較ロジック廃止で確実に動作）
+  // GAS側で写真列を1回のsetValuesで書き込むため速度問題なし
+  BEFORE_KEYS.forEach((k,i)=>{payload[k]=_editBefore[i]||'';});
+  AFTER_KEYS.forEach((k,i)=>{payload[k]=_editAfter[i]||'';});
 
   payload.status=mode==='complete'?'completed':(_editTarget.status||'in-progress');
   try {
