@@ -286,7 +286,7 @@ tr:hover td{background:var(--sur2)}
     <div class="fg"><label>説明</label><textarea id="fImp" placeholder="どのような改善を行ったか..." oninput="draftDebounce()"></textarea></div>
   </div>
   <div class="fc">
-    <div class="fct">ビフォーアフター写真（各最大5枚）</div>
+    <div class="fct">ビフォーアフター写真（各最大3枚）</div>
     <div class="psec">
       <div class="phd"><span class="plbl b">&#128247; BEFORE</span><span class="pcnt" id="bCnt">0 / 5</span></div>
       <div class="prow" id="bRow"><button class="padd" id="bAdd" onclick="trigPh('b')">+</button></div>
@@ -384,12 +384,12 @@ tr:hover td{background:var(--sur2)}
     </div>
     <div class="mbdy">
       <div style="margin-bottom:16px">
-        <div class="eslbl" style="color:var(--yw)"><span>&#128247; BEFORE（最大5枚）</span><span style="font-size:11px;color:var(--t3);font-weight:600" id="ebCnt">0/5</span></div>
+        <div class="eslbl" style="color:var(--yw)"><span>&#128247; BEFORE（最大3枚）</span><span style="font-size:11px;color:var(--t3);font-weight:600" id="ebCnt">0/3</span></div>
         <div class="prow" id="ebRow"><button class="padd" id="ebAdd" onclick="trigEPh('b')" style="border-color:var(--yw)">+</button></div>
         <input type="file" id="ebFile" accept="image/*" multiple style="display:none" onchange="onEPhFile(this,'b')">
       </div>
       <div style="margin-bottom:14px">
-        <div class="eslbl" style="color:var(--gn)"><span>&#128248; AFTER（最大5枚）</span><span style="font-size:11px;color:var(--t3);font-weight:600" id="eaCnt">0/5</span></div>
+        <div class="eslbl" style="color:var(--gn)"><span>&#128248; AFTER（最大3枚）</span><span style="font-size:11px;color:var(--t3);font-weight:600" id="eaCnt">0/3</span></div>
         <div class="prow" id="eaRow"><button class="padd" id="eaAdd" onclick="trigEPh('a')">+</button></div>
         <input type="file" id="eaFile" accept="image/*" multiple style="display:none" onchange="onEPhFile(this,'a')">
       </div>
@@ -1161,30 +1161,13 @@ async function doSave(mode) {
       ?(app?eTarget.improvement+'\n\n【追記】'+app:eTarget.improvement):(app);
     const newSts=mode==='complete'?'completed':(eTarget.status||'in-progress');
 
-    // ── デプロイ確認 ──
-    const gasOk = await verifyGasDeployment();
-    if(!gasOk) return;
+    // ── 1回のリクエストで全更新（連続リクエストのブラウザ衝突を回避） ──
+    const p={action:'updateReport',id:eTarget.id,improvement:newImp,status:newSts};
+    if(bChg) BK.forEach((k,i)=>{p[k]=eBefore[i]||'';});
+    if(aChg) AK.forEach((k,i)=>{p[k]=eAfter[i]||'';});
 
-    // ── STEP 1: メタデータのみ先に送信（写真なし・必ず高速完了） ──
-    const r1=await gasPost({action:'updateReport',id:eTarget.id,improvement:newImp,status:newSts});
-    if(r1.status!=='ok') throw new Error('メタデータ更新失敗: '+(r1.message||'不明'));
-
-    // ── STEP 2: 写真を1枚1セルずつ個別送信（タイムアウト不可能な設計） ──
-    //    各リクエストは1セル分のみ。GAS実行時間は常に1〜2秒以内
-    if(bChg){
-      for(let i=0;i<BK.length;i++){
-        const val=eBefore[i]||'';
-        const r=await gasPost({action:'updatePhoto',id:eTarget.id,key:BK[i],value:val});
-        if(r.status!=='ok') throw new Error('BEFORE写真'+(i+1)+'の更新失敗: '+(r.message||'不明'));
-      }
-    }
-    if(aChg){
-      for(let i=0;i<AK.length;i++){
-        const val=eAfter[i]||'';
-        const r=await gasPost({action:'updatePhoto',id:eTarget.id,key:AK[i],value:val});
-        if(r.status!=='ok') throw new Error('AFTER写真'+(i+1)+'の更新失敗: '+(r.message||'不明'));
-      }
-    }
+    const r1=await gasPost(p);
+    if(r1.status!=='ok') throw new Error(r1.message||'更新エラー');
 
     toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
     closeMod('editOv');
