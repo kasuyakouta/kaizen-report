@@ -1294,8 +1294,19 @@ async function doEditSave(mode) {
     ?(appendText?_editTarget.improvement+'\n\n【追記】'+appendText:_editTarget.improvement)
     :(appendText);
   const payload={action:'updateReport',id:_editTarget.id,improvement:newImp};
-  BEFORE_KEYS.forEach((k,i)=>{payload[k]=_editBefore[i]||'';});
-  AFTER_KEYS.forEach((k,i)=>{payload[k]=_editAfter[i]||'';});
+
+  // ★ 変更のあった写真フィールドのみペイロードに含める
+  //    変更なしの写真は送信しないことでペイロードを最小化し、
+  //    GAS側も変更のないセルを一切読み書きしないためタイムアウトを回避
+  const beforeOrig=getPhotos(_editTarget,'before');
+  const afterOrig=getPhotos(_editTarget,'after');
+  if(JSON.stringify(_editBefore)!==JSON.stringify(beforeOrig)){
+    BEFORE_KEYS.forEach((k,i)=>{payload[k]=_editBefore[i]||'';});
+  }
+  if(JSON.stringify(_editAfter)!==JSON.stringify(afterOrig)){
+    AFTER_KEYS.forEach((k,i)=>{payload[k]=_editAfter[i]||'';});
+  }
+
   payload.status=mode==='complete'?'completed':(_editTarget.status||'in-progress');
   try {
     const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
