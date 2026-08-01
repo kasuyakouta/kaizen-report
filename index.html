@@ -1388,22 +1388,29 @@ async function gas(action){
   return r.json();
 }
 
-async function gasPost(payload){
-  let resp;
-  try {
-    resp = await fetch(GAS, {
-      method: 'POST',
-      headers: {'Content-Type':'text/plain'},
-      body: JSON.stringify(payload)
-    });
-  } catch(e) {
-    // fetchそのものが失敗（ネットワーク/CORS）
-    throw new Error('通信失敗(' + (payload.action||'?') + '): ' + e.message);
-  }
-  // レスポンスをテキストで受け取ってからJSONパース
-  const text = await resp.text();
-  try { return JSON.parse(text); }
-  catch(e) { throw new Error('レスポンス不正: ' + text.slice(0, 100)); }
+// fetch()のPOST+リダイレクト処理はSafari/WebKitで既知の不具合があるため
+// XMLHttpRequestで実装（リダイレクトを含むPOSTボディの扱いがより安定）
+function gasPost(payload){
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', GAS, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain');
+    xhr.timeout = 25000; // 25秒でタイムアウト
+    xhr.onload = () => {
+      try {
+        resolve(JSON.parse(xhr.responseText));
+      } catch(e) {
+        reject(new Error('レスポンス不正: ' + xhr.responseText.slice(0,100)));
+      }
+    };
+    xhr.onerror = () => {
+      reject(new Error('通信失敗(' + (payload.action||'?') + '): XHR error (status=' + xhr.status + ')'));
+    };
+    xhr.ontimeout = () => {
+      reject(new Error('タイムアウト(' + (payload.action||'?') + '): 25秒以内に応答がありませんでした'));
+    };
+    xhr.send(JSON.stringify(payload));
+  });
 }
 
 // 写真配列の変更検出（参照比較・JSON.stringify不使用でメモリ節約）
