@@ -441,6 +441,8 @@ tr:hover td{background:var(--sur2)}
       <button class="btn-p" style="font-size:14px" onclick="savePin()">PINを変更</button>
       <hr class="sdiv">
       <button class="btn-red" onclick="openDelMgr()">&#128465; 報告の削除管理</button>
+      <hr class="sdiv">
+      <button class="btn-dk" onclick="checkGasVersion()">&#128295; GASバージョンを確認</button>
     </div>
   </div>
 </div>
@@ -489,8 +491,8 @@ const DKEY   = 'kz_draft';
 const CKEY   = 'kz_cache';
 const PKEY   = 'kz_pin';
 const MPHOTOS = 3;
-const MAXPX  = 1200;
-const QUAL   = 0.82;
+const MAXPX  = 800;
+const QUAL   = 0.6;
 const BK = ['beforePhoto','beforePhoto2','beforePhoto3','beforePhoto4','beforePhoto5'];
 const AK = ['afterPhoto','afterPhoto2','afterPhoto3','afterPhoto4','afterPhoto5'];
 
@@ -1283,6 +1285,21 @@ function cfmResolve(v){
 let _pin='';
 
 function openPin(){ _pin=''; updDots(); document.getElementById('pErr').style.display='none'; document.getElementById('pinOv').classList.add('on'); }
+
+// GASデプロイバージョンを明示的に確認して表示（診断用）
+async function checkGasVersion(){
+  toast('GASバージョン確認中...','');
+  try{
+    const r = await gasPost({action:'ping'});
+    if(r.ver){
+      alert('現在デプロイされているGASのバージョン: ' + r.ver + '\n\n期待値: v7-rowbased\n\n一致していない場合は、GASエディターで「デプロイ」→「デプロイを管理」→ 鉛筆アイコン →「新しいバージョン」を選んで再デプロイしてください。');
+    } else {
+      alert('GASは応答しましたが、バージョン情報がありません。古いコードが動いている可能性があります。\n\nレスポンス: ' + JSON.stringify(r));
+    }
+  }catch(e){
+    alert('GAS接続確認に失敗しました。\n\nエラー: ' + e.message + '\n\nGAS_URLが正しいか、デプロイが有効か確認してください。');
+  }
+}
 function closePin(){ closeMod('pinOv'); _pin=''; updDots(); }
 function pk(d){ if(_pin.length>=4)return; _pin+=d; updDots(); if(_pin.length===4)setTimeout(checkPin,120); }
 function pDel(){ _pin=_pin.slice(0,-1); updDots(); document.getElementById('pErr').style.display='none'; }
