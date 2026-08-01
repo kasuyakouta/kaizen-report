@@ -1128,32 +1128,34 @@ function updEUI(t) {
 
 // ---- SAVE （ロック付き・同時発火完全防止） ----
 async function doSave(mode) {
-  // ★ 保存ロック：最初の行でチェック＆セット
+  // ★ 保存ロック：最初の行でチェック＆セット（同時発火完全防止）
   if(_saving) return;
   _saving = true;
 
-  // ボタンをすぐに無効化
+  // 押されたボタンのみスピナー。もう一方はdisableのみ（UX改善）
+  const isSave = (mode==='keep');
   document.getElementById('eSave').disabled = true;
   document.getElementById('eComp').disabled = true;
-  document.getElementById('eSaveTxt').innerHTML = '<span class="spin"></span>';
-  document.getElementById('eCompTxt').innerHTML = '<span class="spin"></span>';
+  document.getElementById('eSaveTxt').innerHTML = isSave ? '<span class="spin"></span> 保存中...' : '&#128190; 保存する';
+  document.getElementById('eCompTxt').innerHTML = isSave ? '&#9989; 完了にする' : '<span class="spin"></span> 保存中...';
 
   try {
-    // 写真処理中チェック
     if(eLoadB>0||eLoadA>0){ toast('写真の処理中です。少し待ってください'); return; }
     if(!eTarget||!eTarget.id){ toast('IDがなく更新できません','ng'); return; }
 
-    // 「保存する」のみ: 何も変更なければスキップ
+    // 変更があった写真グループのみ特定（ペイロード最小化・タイムアウト防止）
+    const bOrig = getPhotos(eTarget,'b');
+    const aOrig = getPhotos(eTarget,'a');
+    const bChg  = JSON.stringify(eBefore) !== JSON.stringify(bOrig);
+    const aChg  = JSON.stringify(eAfter)  !== JSON.stringify(aOrig);
+
+    // 「保存する」: 変更なしならスキップ
     if(mode==='keep'){
-      const bOrig=getPhotos(eTarget,'b');
-      const aOrig=getPhotos(eTarget,'a');
       const app=document.getElementById('eApp').value.trim();
-      const bChg=JSON.stringify(eBefore)!==JSON.stringify(bOrig);
-      const aChg=JSON.stringify(eAfter)!==JSON.stringify(aOrig);
       if(!bChg&&!aChg&&!app){ toast('変更がありません'); return; }
     }
 
-    // 「完了にする」で写真が1枚もない場合は確認
+    // 「完了にする」: 写真が1枚もない場合は確認
     if(mode==='complete' && !eBefore.length && !eAfter.length){
       const ok=await showConfirm('📷','写真なしですが、本当に完了にしますか？',
         'ビフォー・アフターともに写真が登録されていません','完了にする','#16A34A');
@@ -1165,10 +1167,11 @@ async function doSave(mode) {
       ?(app?eTarget.improvement+'\n\n【追記】'+app:eTarget.improvement)
       :(app);
 
-    // 全写真フィールドを送信
+    // ★ 変更があったグループのみペイロードに含める
+    //    変更なしの写真はGAS側も書き込まず、タイムアウトを根本的に回避
     const p={action:'updateReport', id:eTarget.id, improvement:newImp};
-    BK.forEach((k,i)=>{ p[k]=eBefore[i]||''; });
-    AK.forEach((k,i)=>{ p[k]=eAfter[i]||''; });
+    if(bChg) BK.forEach((k,i)=>{ p[k]=eBefore[i]||''; });
+    if(aChg) AK.forEach((k,i)=>{ p[k]=eAfter[i]||''; });
     p.status = mode==='complete' ? 'completed' : (eTarget.status||'in-progress');
 
     const r=await gasPost(p);
@@ -1181,7 +1184,7 @@ async function doSave(mode) {
   } catch(e){
     toast('更新に失敗しました: '+e.message,'ng');
   } finally {
-    // ★ ロック解除とボタン復元は必ずfinallyで
+    // ★ 成功・失敗・例外すべての場合にロック解除とボタン復元
     _saving = false;
     document.getElementById('eSave').disabled = false;
     document.getElementById('eComp').disabled = false;
