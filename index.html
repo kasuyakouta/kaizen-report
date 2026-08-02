@@ -131,6 +131,15 @@ textarea{resize:vertical;min-height:80px}
 .cnp span{font-size:10px}
 .cbody{padding:10px 14px;font-size:12px;color:var(--t2);border-top:1px solid var(--bdr)}
 .cacts{display:flex;border-top:1px solid var(--bdr)}
+/* アコーディオン（折りたたみ）方式 */
+.chdr{cursor:pointer;user-select:none}
+.cexp{display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;color:var(--t3);transition:transform .2s;font-size:12px}
+.card.open .cexp{transform:rotate(180deg)}
+.cpcnt{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--t3);font-weight:600;margin-top:2px}
+.cpcnt .pc-b{color:var(--yw)}.cpcnt .pc-a{color:var(--gn)}
+.cbodywrap{display:none}
+.card.open .cbodywrap{display:block}
+.cloading{padding:24px;text-align:center;color:var(--t3);font-size:13px}
 .cact{flex:1;padding:9px 10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
 .cact.ed{background:var(--sur2);color:var(--t2)}.cact.ed:hover{background:var(--bdr)}
 .cact.co{background:var(--ywl);color:var(--yw)}.cact.co:hover{background:#FDE68A}
@@ -906,54 +915,107 @@ function renderList() {
   filtReps.forEach((r,i)=>{
     const rs=r.status||'completed', isIP=rs==='in-progress';
     const dt=parseD(r.datetime).toLocaleDateString('ja-JP',{year:'numeric',month:'numeric',day:'numeric'});
-    const bp=getPhotos(r,'b'), ap=getPhotos(r,'a');
-    // 一覧は1枚目のみ保持。枚数はGASから来る bCount/aCount を使用
-    const bCnt=r.bCount!==undefined?Number(r.bCount):bp.length;
-    const aCnt=r.aCount!==undefined?Number(r.aCount):ap.length;
+    const bCnt=Number(r.bCount)||0, aCnt=Number(r.aCount)||0;
     const hasBoth=r.reductionTime&&r.reductionCost;
     const eTxt=hasBoth?`&#9203; ${r.reductionTime}h ／ &#128176; ${Number(r.reductionCost).toLocaleString()}円`
                :r.reductionTime?`&#9203; ${r.reductionTime}h/月`
                :r.reductionCost?`&#128176; ${Number(r.reductionCost).toLocaleString()}円/月`:'';
     const eCls=hasBoth?'eb':r.reductionTime?'et':r.reductionCost?'ec':'';
 
+    // 写真枚数インジケーター（折りたたみ時に表示）
+    const pcnt = (bCnt>0||aCnt>0)
+      ? `<div class="cpcnt">&#128247; <span class="pc-b">Before×${bCnt}</span>&nbsp;/&nbsp;<span class="pc-a">After×${aCnt}</span></div>`
+      : `<div class="cpcnt">&#128247; 写真なし</div>`;
+
     const card=document.createElement('div');
     card.className='card '+(isIP?'ip':'cp');
-    card.onclick=()=>openDetail(i);
+    card.dataset.idx=i;
 
-    card.innerHTML=
-      `<div class="chdr">`+
+    // ヘッダー（常に表示）：タップで展開
+    const hdr=document.createElement('div');
+    hdr.className='chdr';
+    hdr.innerHTML=
       `<div class="cnb">No.${r.no}</div>`+
       `<div class="cmeta">`+
       `<div class="cname">${esc(r.customer)}</div>`+
       `<div class="csub">`+(r.unit?`<span style="color:var(--ac);font-weight:600">${esc(r.unit)}</span>`:'')+
-      `<span>${esc(r.staff)}</span><span>${dt}</span></div></div>`+
+      `<span>${esc(r.staff)}</span><span>${dt}</span></div>`+
+      pcnt+
+      `</div>`+
       `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">`+
       `<span class="sbdg ${isIP?'ip':'cp'}">${isIP?'&#127937; 進行中':'&#9989; 完了'}</span>`+
       (eTxt?`<span class="ebdg ${eCls}" style="font-size:10px">${eTxt}</span>`:'')+
-      `</div></div>`+
-      `<div class="cphotos">`+
-      (bCnt>0?`<div class="cpw"><img src="${bp[0]||''}" loading="lazy"><div class="cpb b">Before${bCnt>1?' ×'+bCnt:''}</div></div>`
-                :`<div class="cpw cnp">&#128247;<span>未登録</span></div>`)+
-      (aCnt>0?`<div class="cpw"><img src="${ap[0]||''}" loading="lazy"><div class="cpb a">After${aCnt>1?' ×'+aCnt:''}</div></div>`
-                :`<div class="cpw cnp">&#128248;<span>未登録</span></div>`)+
       `</div>`+
-      (r.improvement?`<div class="cbody">${esc(r.improvement.slice(0,80))}${r.improvement.length>80?'&#8230;':''}</div>`:'')+
-      `<div class="cacts"></div>`;
+      `<div class="cexp">&#9660;</div>`;
+    hdr.onclick=()=>toggleCard(card, i);
+    card.appendChild(hdr);
 
-    const acts=card.querySelector('.cacts');
-    const eBtn=document.createElement('button');
-    eBtn.className='cact ed'; eBtn.innerHTML='&#9999;&#65039; 編集';
-    eBtn.onclick=e=>{ e.stopPropagation(); openEdit(i); };
-    acts.appendChild(eBtn);
-    if(isIP){
-      const sep=document.createElement('div'); sep.className='csep'; acts.appendChild(sep);
-      const cBtn=document.createElement('button');
-      cBtn.className='cact co'; cBtn.innerHTML='&#9989; 完了にする';
-      cBtn.onclick=e=>{ e.stopPropagation(); openEdit(i); };
-      acts.appendChild(cBtn);
-    }
+    // ボディ（展開時のみ表示・写真は展開時に取得）
+    const bodyWrap=document.createElement('div');
+    bodyWrap.className='cbodywrap';
+    bodyWrap.innerHTML='<div class="cloading">タップで写真を表示</div>';
+    card.appendChild(bodyWrap);
+
     el.appendChild(card);
   });
+}
+
+// カードの展開/折りたたみ（アコーディオン：他を閉じる）
+async function toggleCard(card, idx){
+  const isOpen=card.classList.contains('open');
+  // 他のカードを閉じる
+  document.querySelectorAll('#rList .card.open').forEach(c=>{ if(c!==card) c.classList.remove('open'); });
+  if(isOpen){ card.classList.remove('open'); return; }
+  card.classList.add('open');
+  // 写真をまだ読み込んでいなければ取得して描画
+  const bodyWrap=card.querySelector('.cbodywrap');
+  const r=filtReps[idx];
+  if(!r._bodyRendered){
+    bodyWrap.innerHTML='<div class="cloading"><span class="spin" style="border-top-color:var(--ac);border-color:var(--bdr);width:20px;height:20px"></span></div>';
+    await ensureFullPhotos(r);
+    renderCardBody(bodyWrap, r, idx);
+    r._bodyRendered=true;
+  }
+}
+
+// 展開したカードの中身（写真＋操作ボタン）を描画
+function renderCardBody(bodyWrap, r, idx){
+  const isIP=(r.status||'completed')==='in-progress';
+  const bp=getPhotos(r,'b'), ap=getPhotos(r,'a');
+  let html=`<div class="cphotos">`+
+    (bp.length?`<div class="cpw"><img src="${bp[0]}" loading="lazy"><div class="cpb b">Before${bp.length>1?' ×'+bp.length:''}</div></div>`
+              :`<div class="cpw cnp">&#128247;<span>未登録</span></div>`)+
+    (ap.length?`<div class="cpw"><img src="${ap[0]}" loading="lazy"><div class="cpb a">After${ap.length>1?' ×'+ap.length:''}</div></div>`
+              :`<div class="cpw cnp">&#128248;<span>未登録</span></div>`)+
+    `</div>`+
+    (r.improvement?`<div class="cbody">${esc(r.improvement.slice(0,120))}${r.improvement.length>120?'&#8230;':''}</div>`:'')+
+    `<div class="cacts"></div>`;
+  bodyWrap.innerHTML=html;
+
+  // 写真クリックで詳細表示
+  bodyWrap.querySelectorAll('.cpw img').forEach((img,k)=>{
+    img.style.cursor='pointer';
+    img.onclick=(e)=>{ e.stopPropagation(); openDetail(idx); };
+  });
+
+  // 操作ボタン
+  const acts=bodyWrap.querySelector('.cacts');
+  const dBtn=document.createElement('button');
+  dBtn.className='cact ed'; dBtn.innerHTML='&#128065;&#65039; 詳細';
+  dBtn.onclick=e=>{ e.stopPropagation(); openDetail(idx); };
+  acts.appendChild(dBtn);
+  const sep0=document.createElement('div'); sep0.className='csep'; acts.appendChild(sep0);
+  const eBtn=document.createElement('button');
+  eBtn.className='cact ed'; eBtn.innerHTML='&#9999;&#65039; 編集';
+  eBtn.onclick=e=>{ e.stopPropagation(); openEdit(idx); };
+  acts.appendChild(eBtn);
+  if(isIP){
+    const sep=document.createElement('div'); sep.className='csep'; acts.appendChild(sep);
+    const cBtn=document.createElement('button');
+    cBtn.className='cact co'; cBtn.innerHTML='&#9989; 完了にする';
+    cBtn.onclick=e=>{ e.stopPropagation(); openEdit(idx); };
+    acts.appendChild(cBtn);
+  }
 }
 
 // ============================================================
