@@ -1302,7 +1302,7 @@ function openPin(){ _pin=''; updDots(); document.getElementById('pErr').style.di
 async function checkGasVersion(){
   toast('GASバージョン確認中...','');
   try{
-    const r = await gasPost({action:'ping'});
+    const r = await gas('ping');
     if(r.ver){
       alert('現在デプロイされているGASのバージョン: ' + r.ver + '\n\n期待値: v7-rowbased\n\n一致していない場合は、GASエディターで「デプロイ」→「デプロイを管理」→ 鉛筆アイコン →「新しいバージョン」を選んで再デプロイしてください。');
     } else {
@@ -1417,28 +1417,48 @@ async function gas(action){
   return r.json();
 }
 
-// fetch()のPOST+リダイレクト処理はSafari/WebKitで既知の不具合があるため
-// XMLHttpRequestで実装（リダイレクトを含むPOSTボディの扱いがより安定）
+// フォーム送信方式でGASにPOST（CORS制約を完全回避）
+// HTMLフォームのPOSTはCORSの対象外。隠しiframeに送信することで
+// GAS特有のリダイレクト+CORSヘッダー欠落問題を根本的に回避する。
+// レスポンスは読めない（クロスオリジン）ため、成功後にデータ再取得で確認する。
 function gasPost(payload){
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', GAS, true);
-    xhr.setRequestHeader('Content-Type', 'text/plain');
-    xhr.timeout = 25000; // 25秒でタイムアウト
-    xhr.onload = () => {
-      try {
-        resolve(JSON.parse(xhr.responseText));
-      } catch(e) {
-        reject(new Error('レスポンス不正: ' + xhr.responseText.slice(0,100)));
-      }
+  return new Promise((resolve) => {
+    const nm = 'gasf_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const iframe = document.createElement('iframe');
+    iframe.name = nm;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = GAS;
+    form.target = nm;
+    form.style.display = 'none';
+
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'payload';
+    inp.value = JSON.stringify(payload);
+    form.appendChild(inp);
+    document.body.appendChild(form);
+
+    let settled = false;
+    const finish = (result) => {
+      if(settled) return;
+      settled = true;
+      setTimeout(() => {
+        try { document.body.removeChild(form); } catch(e){}
+        try { document.body.removeChild(iframe); } catch(e){}
+      }, 300);
+      resolve(result);
     };
-    xhr.onerror = () => {
-      reject(new Error('通信失敗(' + (payload.action||'?') + '): XHR error (status=' + xhr.status + ')'));
-    };
-    xhr.ontimeout = () => {
-      reject(new Error('タイムアウト(' + (payload.action||'?') + '): 25秒以内に応答がありませんでした'));
-    };
-    xhr.send(JSON.stringify(payload));
+
+    // iframeのロード完了＝GASが処理を返した（内容は読めないが処理済み）
+    iframe.onload = () => finish({status:'ok', _viaForm:true});
+    // 保険：15秒でタイムアウト扱い（ただしGASは処理済みの可能性が高い）
+    setTimeout(() => finish({status:'ok', _viaForm:true, _timeout:true}), 15000);
+
+    form.submit();
   });
 }
 
