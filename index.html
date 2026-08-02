@@ -288,12 +288,12 @@ tr:hover td{background:var(--sur2)}
   <div class="fc">
     <div class="fct">ビフォーアフター写真（各最大3枚）</div>
     <div class="psec">
-      <div class="phd"><span class="plbl b">&#128247; BEFORE</span><span class="pcnt" id="bCnt">0 / 5</span></div>
+      <div class="phd"><span class="plbl b">&#128247; BEFORE</span><span class="pcnt" id="bCnt">0 / 3</span></div>
       <div class="prow" id="bRow"><button class="padd" id="bAdd" onclick="trigPh('b')">+</button></div>
       <input type="file" id="bFile" accept="image/*" multiple style="display:none" onchange="onPhFile(this,'b')">
     </div>
     <div class="psec">
-      <div class="phd"><span class="plbl a">&#128248; AFTER</span><span class="pcnt" id="aCnt">0 / 5</span></div>
+      <div class="phd"><span class="plbl a">&#128248; AFTER</span><span class="pcnt" id="aCnt">0 / 3</span></div>
       <div class="prow" id="aRow"><button class="padd" id="aAdd" onclick="trigPh('a')">+</button></div>
       <input type="file" id="aFile" accept="image/*" multiple style="display:none" onchange="onPhFile(this,'a')">
     </div>
@@ -909,6 +909,9 @@ function renderList() {
     const rs=r.status||'completed', isIP=rs==='in-progress';
     const dt=parseD(r.datetime).toLocaleDateString('ja-JP',{year:'numeric',month:'numeric',day:'numeric'});
     const bp=getPhotos(r,'b'), ap=getPhotos(r,'a');
+    // 一覧は1枚目のみ保持。枚数はGASから来る bCount/aCount を使用
+    const bCnt=r.bCount!==undefined?Number(r.bCount):bp.length;
+    const aCnt=r.aCount!==undefined?Number(r.aCount):ap.length;
     const hasBoth=r.reductionTime&&r.reductionCost;
     const eTxt=hasBoth?`&#9203; ${r.reductionTime}h ／ &#128176; ${Number(r.reductionCost).toLocaleString()}円`
                :r.reductionTime?`&#9203; ${r.reductionTime}h/月`
@@ -931,9 +934,9 @@ function renderList() {
       (eTxt?`<span class="ebdg ${eCls}" style="font-size:10px">${eTxt}</span>`:'')+
       `</div></div>`+
       `<div class="cphotos">`+
-      (bp.length?`<div class="cpw"><img src="${bp[0]}" loading="lazy"><div class="cpb b">Before${bp.length>1?' ×'+bp.length:''}</div></div>`
+      (bCnt>0?`<div class="cpw"><img src="${bp[0]||''}" loading="lazy"><div class="cpb b">Before${bCnt>1?' ×'+bCnt:''}</div></div>`
                 :`<div class="cpw cnp">&#128247;<span>未登録</span></div>`)+
-      (ap.length?`<div class="cpw"><img src="${ap[0]}" loading="lazy"><div class="cpb a">After${ap.length>1?' ×'+ap.length:''}</div></div>`
+      (aCnt>0?`<div class="cpw"><img src="${ap[0]||''}" loading="lazy"><div class="cpb a">After${aCnt>1?' ×'+aCnt:''}</div></div>`
                 :`<div class="cpw cnp">&#128248;<span>未登録</span></div>`)+
       `</div>`+
       (r.improvement?`<div class="cbody">${esc(r.improvement.slice(0,80))}${r.improvement.length>80?'&#8230;':''}</div>`:'')+
@@ -1018,8 +1021,9 @@ function renderGoals(fi){
 // ============================================================
 // DETAIL MODAL
 // ============================================================
-function openDetail(idx) {
+async function openDetail(idx) {
   const r=filtReps[idx]; if(!r) return;
+  await ensureFullPhotos(r); // 全写真を取得してから表示
   window._curRep=r;
   document.getElementById('dTit').textContent='No.'+r.no+' '+r.customer;
   const isIP=(r.status||'completed')==='in-progress';
@@ -1073,8 +1077,9 @@ function openEditFromDetail() {
 // ============================================================
 // EDIT MODAL
 // ============================================================
-function openEdit(idx) {
+async function openEdit(idx) {
   const r=filtReps[idx]; if(!r) return;
+  await ensureFullPhotos(r); // 全写真を取得してから編集
   eTarget=r;
   eBefore=getPhotos(r,'b').slice();
   eAfter=getPhotos(r,'a').slice();
@@ -1464,6 +1469,20 @@ function initLB(){
 async function gas(action){
   const r=await fetch(`${GAS}?action=${action}&t=${Date.now()}`);
   return r.json();
+}
+
+// 詳細・編集を開く時に、その1件の全写真を取得してマージ（一覧は軽量化済み）
+async function ensureFullPhotos(r){
+  if(!r||r._full) return r;           // 取得済みならスキップ
+  if(!r.id) { r._full=true; return r; }
+  try{
+    const res=await gas('getReportFull&id='+encodeURIComponent(r.id));
+    if(res.status==='ok'&&res.report){
+      [...BK,...AK].forEach(k=>{ r[k]=res.report[k]||''; });
+      r._full=true;
+    }
+  }catch(e){ console.error('getReportFull失敗:',e); }
+  return r;
 }
 
 // フォーム送信方式でGASにPOST（CORS制約を完全回避）
