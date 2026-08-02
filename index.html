@@ -1163,10 +1163,22 @@ async function doSave(mode) {
       ?(app?eTarget.improvement+'\n\n【追記】'+app:eTarget.improvement):(app);
     const newSts=mode==='complete'?'completed':(eTarget.status||'in-progress');
 
-    // ── 1回のリクエストで全更新（連続リクエストのブラウザ衝突を回避） ──
+    // ── ペイロード構築：実際に変わったセルだけを送信（サイズ最小化） ──
+    //    グループ全体ではなく1セル単位で比較。既存の大きな写真の再送信を防ぐ。
     const p={action:'updateReport',id:eTarget.id,improvement:newImp,status:newSts};
-    if(bChg) BK.forEach((k,i)=>{p[k]=eBefore[i]||'';});
-    if(aChg) AK.forEach((k,i)=>{p[k]=eAfter[i]||'';});
+    BK.forEach((k,i)=>{
+      const cur=eBefore[i]||'', orig=eTarget[k]||'';
+      if(cur!==orig) p[k]=cur; // 変わったセルのみ含める
+    });
+    AK.forEach((k,i)=>{
+      const cur=eAfter[i]||'', orig=eTarget[k]||'';
+      if(cur!==orig) p[k]=cur;
+    });
+
+    // 診断用：送信ペイロードのサイズを計測
+    const payloadStr=JSON.stringify(p);
+    const kb=Math.round(payloadStr.length/1024);
+    console.log('[doSave] payload size:', kb, 'KB', 'keys:', Object.keys(p).filter(k=>k.includes('Photo')));
 
     const r1=await gasPost(p);
     if(r1.status!=='ok') throw new Error(r1.message||'更新エラー');
