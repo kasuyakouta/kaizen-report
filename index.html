@@ -1180,8 +1180,22 @@ async function doSave(mode) {
     const kb=Math.round(payloadStr.length/1024);
     console.log('[doSave] payload size:', kb, 'KB', 'keys:', Object.keys(p).filter(k=>k.includes('Photo')));
 
-    const r1=await gasPost(p);
-    if(r1.status!=='ok') throw new Error(r1.message||'更新エラー');
+    await gasPost(p); // フォーム送信（レスポンスは読めない）
+
+    // GAS側が実際に受信・処理できたかをGETで検証
+    await new Promise(r=>setTimeout(r,1000)); // GASの処理完了を待つ
+    const chk = await gas('lastPost');
+    console.log('[doSave] GAS受信検証:', chk);
+    if(!chk.ok){
+      throw new Error('GAS処理失敗: ' + (chk.error||JSON.stringify(chk).slice(0,120)));
+    }
+    if(chk.result && chk.result.status!=='ok'){
+      throw new Error('GAS書き込み失敗: ' + (chk.result.message||'不明'));
+    }
+    // 送信した写真キーがGAS側で受信できていたか確認
+    const sentPhotoKeys = Object.keys(p).filter(k=>k.indexOf('Photo')>=0);
+    const recvLens = (chk.dbg && chk.dbg.photoLens) || [];
+    console.log('[doSave] 送信キー:', sentPhotoKeys, '/ GAS受信長:', recvLens);
 
     toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
     closeMod('editOv');
