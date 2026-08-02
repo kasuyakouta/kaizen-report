@@ -441,8 +441,6 @@ tr:hover td{background:var(--sur2)}
       <button class="btn-p" style="font-size:14px" onclick="savePin()">PINを変更</button>
       <hr class="sdiv">
       <button class="btn-red" onclick="openDelMgr()">&#128465; 報告の削除管理</button>
-      <hr class="sdiv">
-      <button class="btn-dk" onclick="checkGasVersion()">&#128295; GASバージョンを確認</button>
     </div>
   </div>
 </div>
@@ -1200,27 +1198,7 @@ async function doSave(mode) {
       if(cur!==orig) p[k]=cur;
     });
 
-    // 診断用：送信ペイロードのサイズを計測
-    const payloadStr=JSON.stringify(p);
-    const kb=Math.round(payloadStr.length/1024);
-    console.log('[doSave] payload size:', kb, 'KB', 'keys:', Object.keys(p).filter(k=>k.includes('Photo')));
-
-    await gasPost(p); // フォーム送信（レスポンスは読めない）
-
-    // GAS側が実際に受信・処理できたかをGETで検証
-    await new Promise(r=>setTimeout(r,1000)); // GASの処理完了を待つ
-    const chk = await gas('lastPost');
-    console.log('[doSave] GAS受信検証:', chk);
-    if(!chk.ok){
-      throw new Error('GAS処理失敗: ' + (chk.error||JSON.stringify(chk).slice(0,120)));
-    }
-    if(chk.result && chk.result.status!=='ok'){
-      throw new Error('GAS書き込み失敗: ' + (chk.result.message||'不明'));
-    }
-    // 送信した写真キーがGAS側で受信できていたか確認
-    const sentPhotoKeys = Object.keys(p).filter(k=>k.indexOf('Photo')>=0);
-    const recvLens = (chk.dbg && chk.dbg.photoLens) || [];
-    console.log('[doSave] 送信キー:', sentPhotoKeys, '/ GAS受信長:', recvLens);
+    await gasPost(p); // フォーム送信でGASに保存
 
     toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
     closeMod('editOv');
@@ -1337,35 +1315,7 @@ let _pin='';
 
 function openPin(){ _pin=''; updDots(); document.getElementById('pErr').style.display='none'; document.getElementById('pinOv').classList.add('on'); }
 
-// GASデプロイバージョンを明示的に確認して表示（診断用）
-async function checkGasVersion(){
-  toast('確認中...','');
-  let msg='';
-  try{
-    const r = await gas('ping');
-    msg += 'GASバージョン: ' + (r.ver||'不明') + '（期待値: v8-diag）\n\n';
-  }catch(e){
-    msg += 'バージョン確認失敗: ' + e.message + '\n\n';
-  }
-  try{
-    const last = await gas('lastPost');
-    msg += '=== 最後のPOST処理結果 ===\n';
-    if(last.ts) msg += '時刻: ' + last.ts + '\n';
-    if(last.dbg){
-      msg += '受信方式: ' + (last.dbg.source||'?') + '\n';
-      msg += '受信データ長: ' + (last.dbg.rawLen||0) + ' 文字\n';
-      msg += 'action: ' + (last.dbg.action||'?') + '\n';
-      msg += '写真キー: ' + JSON.stringify(last.dbg.photoKeys||[]) + '\n';
-      msg += '写真データ長: ' + JSON.stringify(last.dbg.photoLens||[]) + '\n';
-    }
-    if(last.error) msg += '★エラー: ' + last.error + '\n';
-    if(last.result) msg += '書き込み結果: ' + JSON.stringify(last.result) + '\n';
-    if(!last.ts) msg += '（まだPOST記録がありません）\n';
-  }catch(e){
-    msg += '最後のPOST結果の取得失敗: ' + e.message;
-  }
-  alert(msg);
-}
+
 function closePin(){ closeMod('pinOv'); _pin=''; updDots(); }
 function pk(d){ if(_pin.length>=4)return; _pin+=d; updDots(); if(_pin.length===4)setTimeout(checkPin,120); }
 function pDel(){ _pin=_pin.slice(0,-1); updDots(); document.getElementById('pErr').style.display='none'; }
@@ -1539,20 +1489,7 @@ function photoArrChanged(current, original) {
   return false;
 }
 
-// GASデプロイ確認（初回のみ）
-let _gasVerified = false;
-async function verifyGasDeployment() {
-  if(_gasVerified) return true;
-  try {
-    const r = await gasPost({action:'ping'});
-    if(r.ver === 'v8-diag') { _gasVerified = true; return true; }
-    toast('GASが古いバージョンです。再デプロイしてください', 'ng');
-    return false;
-  } catch(e) {
-    toast('GAS接続確認失敗: ' + e.message, 'ng');
-    return false;
-  }
-}
+
 
 // ============================================================
 // MODAL / TOAST / UTILS
