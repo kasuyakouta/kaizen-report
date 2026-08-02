@@ -1314,17 +1314,32 @@ function openPin(){ _pin=''; updDots(); document.getElementById('pErr').style.di
 
 // GASデプロイバージョンを明示的に確認して表示（診断用）
 async function checkGasVersion(){
-  toast('GASバージョン確認中...','');
+  toast('確認中...','');
+  let msg='';
   try{
     const r = await gas('ping');
-    if(r.ver){
-      alert('現在デプロイされているGASのバージョン: ' + r.ver + '\n\n期待値: v7-rowbased\n\n一致していない場合は、GASエディターで「デプロイ」→「デプロイを管理」→ 鉛筆アイコン →「新しいバージョン」を選んで再デプロイしてください。');
-    } else {
-      alert('GASは応答しましたが、バージョン情報がありません。古いコードが動いている可能性があります。\n\nレスポンス: ' + JSON.stringify(r));
-    }
+    msg += 'GASバージョン: ' + (r.ver||'不明') + '（期待値: v8-diag）\n\n';
   }catch(e){
-    alert('GAS接続確認に失敗しました。\n\nエラー: ' + e.message + '\n\nGAS_URLが正しいか、デプロイが有効か確認してください。');
+    msg += 'バージョン確認失敗: ' + e.message + '\n\n';
   }
+  try{
+    const last = await gas('lastPost');
+    msg += '=== 最後のPOST処理結果 ===\n';
+    if(last.ts) msg += '時刻: ' + last.ts + '\n';
+    if(last.dbg){
+      msg += '受信方式: ' + (last.dbg.source||'?') + '\n';
+      msg += '受信データ長: ' + (last.dbg.rawLen||0) + ' 文字\n';
+      msg += 'action: ' + (last.dbg.action||'?') + '\n';
+      msg += '写真キー: ' + JSON.stringify(last.dbg.photoKeys||[]) + '\n';
+      msg += '写真データ長: ' + JSON.stringify(last.dbg.photoLens||[]) + '\n';
+    }
+    if(last.error) msg += '★エラー: ' + last.error + '\n';
+    if(last.result) msg += '書き込み結果: ' + JSON.stringify(last.result) + '\n';
+    if(!last.ts) msg += '（まだPOST記録がありません）\n';
+  }catch(e){
+    msg += '最後のPOST結果の取得失敗: ' + e.message;
+  }
+  alert(msg);
 }
 function closePin(){ closeMod('pinOv'); _pin=''; updDots(); }
 function pk(d){ if(_pin.length>=4)return; _pin+=d; updDots(); if(_pin.length===4)setTimeout(checkPin,120); }
@@ -1491,7 +1506,7 @@ async function verifyGasDeployment() {
   if(_gasVerified) return true;
   try {
     const r = await gasPost({action:'ping'});
-    if(r.ver === 'v6') { _gasVerified = true; return true; }
+    if(r.ver === 'v8-diag') { _gasVerified = true; return true; }
     toast('GASが古いバージョンです。再デプロイしてください', 'ng');
     return false;
   } catch(e) {
