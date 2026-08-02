@@ -698,7 +698,7 @@ function makeThumb(src, onImg, onRm, rmBg) {
 function makeSpinner(color) {
   const w=document.createElement('div'); w.className='thumb-item pload';
   const sp=document.createElement('span'); sp.className='spin';
-  sp.style.cssText=`border-top-color:${color};border-color:var(--bdr);width:24px;height:24px;border-width:3px`;
+  sp.style.cssText=`border-color:var(--bdr);border-top-color:${color};width:24px;height:24px;border-width:3px`;
   w.appendChild(sp); return w;
 }
 
@@ -973,7 +973,7 @@ async function toggleCard(card, idx){
   const r=filtReps[idx];
   if(r._bodyRendered) return;
   // スピナー表示
-  bodyWrap.innerHTML='<div class="cloading"><span class="spin" style="border-top-color:var(--ac);border-color:var(--bdr);width:22px;height:22px"></span> <span style="margin-left:8px;color:var(--t3)">読み込み中...</span></div>';
+  bodyWrap.innerHTML='<div class="cloading"><span class="spin" style="border-color:var(--bdr);border-top-color:var(--ac);width:22px;height:22px"></span> <span style="margin-left:8px;color:var(--t3)">読み込み中...</span></div>';
   // ★ スピナーを確実に画面に描画させてから通信（フリーズ感を解消）
   await new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res)));
   await ensureFullPhotos(r);
