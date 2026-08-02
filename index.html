@@ -513,6 +513,8 @@ const fPh = {b:[], a:[]};
 const fLd = {b:0, a:0};
 // 編集モーダル写真
 let eBefore=[], eAfter=[], eLoadB=0, eLoadA=0, eTarget=null;
+// 展開した報告の写真をIDでキャッシュ（loadReportsで消えないよう別保持）
+const photoCache = {};
 // 保存ロック（同時発火防止）
 let _saving = false;
 
@@ -967,15 +969,16 @@ async function toggleCard(card, idx){
   document.querySelectorAll('#rList .card.open').forEach(c=>{ if(c!==card) c.classList.remove('open'); });
   if(isOpen){ card.classList.remove('open'); return; }
   card.classList.add('open');
-  // 写真をまだ読み込んでいなければ取得して描画
   const bodyWrap=card.querySelector('.cbodywrap');
   const r=filtReps[idx];
-  if(!r._bodyRendered){
-    bodyWrap.innerHTML='<div class="cloading"><span class="spin" style="border-top-color:var(--ac);border-color:var(--bdr);width:20px;height:20px"></span></div>';
-    await ensureFullPhotos(r);
-    renderCardBody(bodyWrap, r, idx);
-    r._bodyRendered=true;
-  }
+  if(r._bodyRendered) return;
+  // スピナー表示
+  bodyWrap.innerHTML='<div class="cloading"><span class="spin" style="border-top-color:var(--ac);border-color:var(--bdr);width:22px;height:22px"></span> <span style="margin-left:8px;color:var(--t3)">読み込み中...</span></div>';
+  // ★ スピナーを確実に画面に描画させてから通信（フリーズ感を解消）
+  await new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res)));
+  await ensureFullPhotos(r);
+  renderCardBody(bodyWrap, r, idx);
+  r._bodyRendered=true;
 }
 
 // 展開したカードの中身（写真＋操作ボタン）を描画
@@ -1262,6 +1265,9 @@ async function doSave(mode) {
 
     await gasPost(p); // フォーム送信でGASに保存
 
+    // 編集した報告のキャッシュを無効化（次回展開時に最新を再取得）
+    if(eTarget && eTarget.id) delete photoCache[eTarget.id];
+
     toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
     closeMod('editOv');
     await loadReports();
@@ -1344,6 +1350,7 @@ async function delRep(id, label){
   try{
     const r=await gasPost({action:'deleteReport',id});
     if(r.status!=='ok') throw new Error(r.message);
+    delete photoCache[id]; // キャッシュからも削除
     toast('削除しました','ok');
     await renderDelList(); await loadReports();
   }catch(e){ toast('削除失敗: '+e.message,'ng'); }
@@ -1487,10 +1494,19 @@ async function gas(action){
 async function ensureFullPhotos(r){
   if(!r||r._full) return r;           // 取得済みならスキップ
   if(!r.id) { r._full=true; return r; }
+  // キャッシュにあれば通信せず即座に復元
+  if(photoCache[r.id]){
+    Object.assign(r, photoCache[r.id]);
+    r._full=true;
+    return r;
+  }
   try{
     const res=await gas('getReportFull&id='+encodeURIComponent(r.id));
     if(res.status==='ok'&&res.report){
-      [...BK,...AK].forEach(k=>{ r[k]=res.report[k]||''; });
+      const photos={};
+      [...BK,...AK].forEach(k=>{ photos[k]=res.report[k]||''; });
+      Object.assign(r, photos);
+      photoCache[r.id]=photos; // キャッシュ保存
       r._full=true;
     }
   }catch(e){ console.error('getReportFull失敗:',e); }
