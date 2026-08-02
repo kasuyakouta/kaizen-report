@@ -693,6 +693,8 @@ function makeSpinner(color) {
   w.appendChild(sp); return w;
 }
 
+// Google Sheetsの1セル上限(50,000文字)に確実に収まるまで段階的に圧縮
+const CELL_LIMIT = 45000; // 安全マージンを含めた上限
 function resizeImg(file, cb, errCb) {
   const img=new Image(), url=URL.createObjectURL(file);
   img.onload=()=>{
@@ -700,9 +702,27 @@ function resizeImg(file, cb, errCb) {
     try {
       let w=img.naturalWidth, h=img.naturalHeight;
       if(w>MAXPX||h>MAXPX){ if(w>h){h=Math.round(h*MAXPX/w);w=MAXPX;}else{w=Math.round(w*MAXPX/h);h=MAXPX;} }
-      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-      cv.getContext('2d').drawImage(img,0,0,w,h);
-      cb(cv.toDataURL('image/jpeg',QUAL));
+      const cv=document.createElement('canvas');
+      const ctx=cv.getContext('2d');
+      let quality=QUAL, scale=1, b64='';
+      // 45,000文字以内に収まるまで、品質→サイズの順で段階的に縮小（最大10回）
+      for(let attempt=0; attempt<10; attempt++){
+        const cw=Math.max(Math.round(w*scale),1), ch=Math.max(Math.round(h*scale),1);
+        cv.width=cw; cv.height=ch;
+        ctx.clearRect(0,0,cw,ch);
+        ctx.drawImage(img,0,0,cw,ch);
+        b64=cv.toDataURL('image/jpeg',quality);
+        if(b64.length<=CELL_LIMIT) break;
+        // まず品質を下げ、下限(0.35)まで来たら寸法を縮小
+        if(quality>0.35) quality=Math.max(0.35,quality-0.12);
+        else scale*=0.82;
+      }
+      if(b64.length>CELL_LIMIT){
+        // 10回試しても収まらない場合はエラー（極端に複雑な画像）
+        errCb(new Error('画像を十分に圧縮できませんでした。別の写真をお試しください'));
+        return;
+      }
+      cb(b64);
     } catch(e){ errCb(e); }
   };
   img.onerror=()=>{ URL.revokeObjectURL(url); errCb(new Error('画像読み込み失敗')); };
