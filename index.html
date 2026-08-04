@@ -586,11 +586,18 @@ async function saveGoals() {
   const ag=parseInt(document.getElementById('sYear').value)||100;
   try {
     const r=await gasPost({action:'saveSettings',monthlyGoal:mg,annualGoal:ag});
-    if(r.status!=='ok') throw new Error(r.message);
-    const c=getCache()||{}; c.monthlyGoal=mg; c.annualGoal=ag;
-    localStorage.setItem(CKEY,JSON.stringify(c));
-    window._mg=mg; window._ag=ag;
-    toast('目標を保存しました','ok');
+    const v=await verifyWrite(r, async ()=>{
+      const res=await gas('getSettings');
+      return res.status==='ok' && Number(res.monthlyGoal)===mg && Number(res.annualGoal)===ag;
+    });
+    if(v.ok===true){
+      const c=getCache()||{}; c.monthlyGoal=mg; c.annualGoal=ag;
+      localStorage.setItem(CKEY,JSON.stringify(c));
+      window._mg=mg; window._ag=ag;
+      toast('目標を保存しました','ok');
+    } else {
+      toastVerifyFail(v,'保存');
+    }
   } catch(e){ toast('保存失敗: '+e.message,'ng'); }
 }
 
@@ -602,11 +609,18 @@ async function savePin() {
   const h=await sha256(p1);
   try {
     const r=await gasPost({action:'saveSettings',pinHash:h});
-    if(r.status!=='ok') throw new Error(r.message);
-    localStorage.setItem(PKEY,h);
-    const c=getCache()||{}; c.pinHash=h; localStorage.setItem(CKEY,JSON.stringify(c));
-    document.getElementById('nPin').value=''; document.getElementById('nPin2').value='';
-    toast('PINを変更しました','ok');
+    const v=await verifyWrite(r, async ()=>{
+      const res=await gas('getSettings');
+      return res.status==='ok' && res.pinHash===h;
+    });
+    if(v.ok===true){
+      localStorage.setItem(PKEY,h);
+      const c=getCache()||{}; c.pinHash=h; localStorage.setItem(CKEY,JSON.stringify(c));
+      document.getElementById('nPin').value=''; document.getElementById('nPin2').value='';
+      toast('PINを変更しました','ok');
+    } else {
+      toastVerifyFail(v,'変更');
+    }
   } catch(e){ toast('変更失敗: '+e.message,'ng'); }
 }
 
@@ -825,14 +839,27 @@ async function submitForm() {
 
   try {
     const r=await gasPost(p);
-    if(r.status!=='ok') throw new Error(r.message||'送信エラー');
-    toast('報告を送信しました！','ok');
-    localStorage.removeItem(DKEY);
-    resetForm();
-    setTimeout(()=>showPg('list',document.getElementById('tab-list')),800);
+    const v=await verifyWrite(r, async ()=>{
+      const d=await gas('getReports');
+      return (d.reports||[]).some(x=>
+        x.customer===cust && x.unit===unit && x.staff===staff &&
+        (x.improvement||'')===imp && sameDate(x.datetime,date)
+      );
+    });
+    if(v.ok===true){
+      toast('報告を送信しました！','ok');
+      localStorage.removeItem(DKEY);
+      resetForm();
+      setTimeout(()=>showPg('list',document.getElementById('tab-list')),800);
+    } else {
+      toastVerifyFail(v,'送信');
+      saveDraft();
+    }
   } catch(e){ toast('送信失敗: '+e.message,'ng'); saveDraft(); }
   finally{ btn.disabled=false; txt.innerHTML='&#128228; 報告を送信'; }
 }
+
+function sameDate(a,b){ return parseD(a).getTime()===parseD(b).getTime(); }
 
 function resetForm() {
   setToday();
@@ -1263,14 +1290,25 @@ async function doSave(mode) {
       if(cur!==orig) p[k]=cur;
     });
 
-    await gasPost(p); // フォーム送信でGASに保存
+    const r=await gasPost(p); // フォーム送信でGASに保存
+    const v=await verifyWrite(r, async ()=>{
+      const res=await gas('getReportFull&id='+encodeURIComponent(eTarget.id));
+      if(res.status!=='ok'||!res.report) return false;
+      const rep=res.report;
+      if((rep.status||'completed')!==newSts) return false;
+      if((rep.improvement||'')!==newImp) return false;
+      return [...BK,...AK].every(k=>!(k in p) || (rep[k]||'')===p[k]);
+    });
 
-    // 編集した報告のキャッシュを無効化（次回展開時に最新を再取得）
-    if(eTarget && eTarget.id) delete photoCache[eTarget.id];
-
-    toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
-    closeMod('editOv');
-    await loadReports();
+    if(v.ok===true){
+      // 編集した報告のキャッシュを無効化（次回展開時に最新を再取得）
+      delete photoCache[eTarget.id];
+      toast(mode==='complete'?'完了にしました ✅':'変更を保存しました','ok');
+      closeMod('editOv');
+      await loadReports();
+    } else {
+      toastVerifyFail(v,'保存');
+    }
 
   } catch(e){
     toast('更新に失敗しました: '+e.message,'ng');
@@ -1349,10 +1387,17 @@ async function delRep(id, label){
   if(!ok) return;
   try{
     const r=await gasPost({action:'deleteReport',id});
-    if(r.status!=='ok') throw new Error(r.message);
-    delete photoCache[id]; // キャッシュからも削除
-    toast('削除しました','ok');
-    await renderDelList(); await loadReports();
+    const v=await verifyWrite(r, async ()=>{
+      const d=await gas('getReports');
+      return !(d.reports||[]).some(x=>x.id===id);
+    });
+    if(v.ok===true){
+      delete photoCache[id]; // キャッシュからも削除
+      toast('削除しました','ok');
+      await renderDelList(); await loadReports();
+    } else {
+      toastVerifyFail(v,'削除');
+    }
   }catch(e){ toast('削除失敗: '+e.message,'ng'); }
 }
 
@@ -1516,9 +1561,14 @@ async function ensureFullPhotos(r){
 // フォーム送信方式でGASにPOST（CORS制約を完全回避）
 // HTMLフォームのPOSTはCORSの対象外。隠しiframeに送信することで
 // GAS特有のリダイレクト+CORSヘッダー欠落問題を根本的に回避する。
-// レスポンスは読めない（クロスオリジン）ため、成功後にデータ再取得で確認する。
+// レスポンス本文はクロスオリジンのため読めない。「送信が届いたか」までしか分からないため、
+// 呼び出し側は必ず verifyWrite() で実データを再取得し、反映されたことを確認してから成功とすること。
 function gasPost(payload){
   return new Promise((resolve) => {
+    if(!navigator.onLine){
+      resolve({status:'error', message:'オフラインのため送信できません'});
+      return;
+    }
     const nm = 'gasf_' + Date.now() + '_' + Math.floor(Math.random()*10000);
     const iframe = document.createElement('iframe');
     iframe.name = nm;
@@ -1549,13 +1599,36 @@ function gasPost(payload){
       resolve(result);
     };
 
-    // iframeのロード完了＝GASが処理を返した（内容は読めないが処理済み）
-    iframe.onload = () => finish({status:'ok', _viaForm:true});
-    // 保険：15秒でタイムアウト扱い（ただしGASは処理済みの可能性が高い）
-    setTimeout(() => finish({status:'ok', _viaForm:true, _timeout:true}), 15000);
+    // iframeのロード完了＝GASからの応答を受信（内容は読めず、届いたことしか分からない）
+    iframe.onload = () => finish({status:'sent', _viaForm:true});
+    // 通信自体の失敗（DNS失敗・接続遮断など）
+    iframe.onerror = () => finish({status:'error', message:'通信エラーが発生しました'});
+    // 保険：15秒応答が無い場合はタイムアウト（成功とは断定しない）
+    setTimeout(() => finish({status:'timeout', message:'サーバーからの応答がありません'}), 15000);
 
     form.submit();
   });
+}
+
+// gasPostの結果を検証する。iframe方式では応答本文が読めないため、
+// 実データを再取得するcheckFnの結果で初めて成功/失敗を確定させる。
+// 戻り値: {ok:true}=反映確認済み / {ok:false}=反映されていない(失敗) / {ok:null}=確認自体に失敗(不明)
+async function verifyWrite(postResult, checkFn){
+  if(postResult.status==='error' || postResult.status==='timeout'){
+    return {ok:false, reason:postResult.message};
+  }
+  try {
+    const confirmed = await checkFn();
+    return confirmed ? {ok:true} : {ok:false, reason:'反映が確認できませんでした'};
+  } catch(e){
+    return {ok:null, reason:e.message};
+  }
+}
+
+// verifyWriteがok!==trueだった場合の失敗トーストを表示する（ngPrefix: 「送信」「保存」「削除」「変更」等）
+function toastVerifyFail(v, ngPrefix){
+  if(v.ok===false) toast(ngPrefix+'に失敗した可能性があります: '+(v.reason||''),'ng');
+  else              toast(ngPrefix+'結果を確認できませんでした。再読み込みしてご確認ください','ng');
 }
 
 // 写真配列の変更検出（参照比較・JSON.stringify不使用でメモリ節約）
