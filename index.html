@@ -84,6 +84,7 @@ textarea{resize:vertical;min-height:80px}
 .padd{flex-shrink:0;width:80px;height:80px;border:2px dashed var(--bdr);border-radius:var(--rs);background:var(--sur2);color:var(--t3);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
 .padd:hover{border-color:var(--ac);color:var(--ac);background:var(--acl)}
 .padd.hide{display:none}
+.padd:disabled{opacity:.5;cursor:not-allowed}
 .pload{width:80px;height:80px;border-radius:var(--rs);background:var(--sur2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 /* BUTTONS */
 .btn-p{width:100%;padding:13px;background:var(--ac);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -763,19 +764,27 @@ function onPhFile(inp, t) {
   if(rem<=0){ toast('すでに'+MPHOTOS+'枚登録済みです'); inp.value=''; return; }
   const proc=files.slice(0,rem);
   if(files.length>rem) toast('最大'+MPHOTOS+'枚です。'+rem+'枚のみ追加します');
-  proc.forEach(f=>{
-    fLd[t]++;
-    const sp=makeSpinner(t==='b'?'var(--yw)':'var(--gn)');
-    sp.classList.add('ph-loading');
-    const row=document.getElementById(t+'Row');
-    row.insertBefore(sp, document.getElementById(t+'Add'));
-    updPhUI(t);
-    resizeImg(f, b64=>{
-      fPh[t].push(b64); fLd[t]--;
-      sp.remove(); rebuildFThumbs(t);
-    }, e=>{ fLd[t]--; sp.remove(); updPhUI(t); toast('画像変換失敗: '+e.message,'ng'); });
-  });
+  processPhQueue(proc, 0, t);
   inp.value='';
+}
+
+// 選択した順序で1枚ずつ処理する（並列処理だと圧縮の速さで完了順がばらつき、選択順と結果の並びがずれるため）
+function processPhQueue(files, idx, t){
+  if(idx>=files.length) return;
+  fLd[t]++;
+  const sp=makeSpinner(t==='b'?'var(--yw)':'var(--gn)');
+  sp.classList.add('ph-loading');
+  const row=document.getElementById(t+'Row');
+  row.insertBefore(sp, document.getElementById(t+'Add'));
+  updPhUI(t);
+  resizeImg(files[idx], b64=>{
+    fPh[t].push(b64); fLd[t]--;
+    sp.remove(); rebuildFThumbs(t);
+    processPhQueue(files, idx+1, t);
+  }, e=>{
+    fLd[t]--; sp.remove(); updPhUI(t); toast('画像変換失敗: '+e.message,'ng');
+    processPhQueue(files, idx+1, t);
+  });
 }
 
 function rebuildFThumbs(t) {
@@ -831,6 +840,7 @@ async function submitForm() {
   const btn=document.getElementById('subBtn');
   const txt=document.getElementById('subTxt');
   btn.disabled=true; txt.innerHTML='<span class="spin"></span> 送信中...';
+  setFormPhotoInputsDisabled(true); // 送信中に追加された写真が送信されず消えるのを防ぐ
 
   const p={action:'addReport',datetime:date,customer:cust,unit,staff,improvement:imp,
            reductionTime:rTime||'',reductionCost:rCost||''};
@@ -856,7 +866,11 @@ async function submitForm() {
       saveDraft();
     }
   } catch(e){ toast('送信失敗: '+e.message,'ng'); saveDraft(); }
-  finally{ btn.disabled=false; txt.innerHTML='&#128228; 報告を送信'; }
+  finally{ btn.disabled=false; txt.innerHTML='&#128228; 報告を送信'; setFormPhotoInputsDisabled(false); }
+}
+
+function setFormPhotoInputsDisabled(disabled){
+  ['bAdd','aAdd','bFile','aFile'].forEach(id=>{ document.getElementById(id).disabled=disabled; });
 }
 
 function sameDate(a,b){ return parseD(a).getTime()===parseD(b).getTime(); }
@@ -1013,9 +1027,9 @@ function renderCardBody(bodyWrap, r, idx){
   const isIP=(r.status||'completed')==='in-progress';
   const bp=getPhotos(r,'b'), ap=getPhotos(r,'a');
   let html=`<div class="cphotos">`+
-    (bp.length?`<div class="cpw"><img src="${bp[0]}" loading="lazy"><div class="cpb b">Before${bp.length>1?' ×'+bp.length:''}</div></div>`
+    (bp.length?`<div class="cpw"><img src="${esc(bp[0])}" loading="lazy"><div class="cpb b">Before${bp.length>1?' ×'+bp.length:''}</div></div>`
               :`<div class="cpw cnp">&#128247;<span>未登録</span></div>`)+
-    (ap.length?`<div class="cpw"><img src="${ap[0]}" loading="lazy"><div class="cpb a">After${ap.length>1?' ×'+ap.length:''}</div></div>`
+    (ap.length?`<div class="cpw"><img src="${esc(ap[0])}" loading="lazy"><div class="cpb a">After${ap.length>1?' ×'+ap.length:''}</div></div>`
               :`<div class="cpw cnp">&#128248;<span>未登録</span></div>`)+
     `</div>`+
     (r.improvement?`<div class="cbody">${esc(r.improvement.slice(0,120))}${r.improvement.length>120?'&#8230;':''}</div>`:'')+
@@ -1129,7 +1143,7 @@ async function openDetail(idx) {
     if(photos.length){
       ph+=`<div class="dprow">`;
       photos.forEach((src,i)=>{
-        ph+=`<div class="dpthumb" data-t="${t}" data-i="${i}" data-ri="${idx}"><img src="${src}" loading="lazy"><div class="dpbdg ${t}">${lbl}${photos.length>1?' '+(i+1):''}</div></div>`;
+        ph+=`<div class="dpthumb" data-t="${t}" data-i="${i}" data-ri="${idx}"><img src="${esc(src)}" loading="lazy"><div class="dpbdg ${t}">${lbl}${photos.length>1?' '+(i+1):''}</div></div>`;
       });
       ph+=`</div>`;
     } else { ph+=`<div class="dnp">&#128247; 写真なし</div>`; }
@@ -1197,23 +1211,29 @@ function onEPhFile(inp, t) {
   if(rem<=0){ toast('すでに'+MPHOTOS+'枚登録済みです'); inp.value=''; return; }
   const proc=files.slice(0,rem);
   if(files.length>rem) toast('最大'+MPHOTOS+'枚です。'+rem+'枚のみ追加します');
-  proc.forEach(f=>{
-    if(t==='b') eLoadB++; else eLoadA++;
-    const color=t==='b'?'var(--yw)':'var(--gn)';
-    const sp=makeSpinner(color); sp.classList.add('eph-loading');
-    const row=document.getElementById(t==='b'?'ebRow':'eaRow');
-    row.insertBefore(sp, document.getElementById(t==='b'?'ebAdd':'eaAdd'));
-    updEUI(t);
-    resizeImg(f, b64=>{
-      (t==='b'?eBefore:eAfter).push(b64);
-      if(t==='b') eLoadB--; else eLoadA--;
-      sp.remove(); rebuildEThumbs(t);
-    }, e=>{
-      if(t==='b') eLoadB--; else eLoadA--;
-      sp.remove(); updEUI(t); toast('画像変換失敗: '+e.message,'ng');
-    });
-  });
+  processEPhQueue(proc, 0, t);
   inp.value='';
+}
+
+// 選択した順序で1枚ずつ処理する（並列処理だと圧縮の速さで完了順がばらつき、選択順と結果の並びがずれるため）
+function processEPhQueue(files, idx, t){
+  if(idx>=files.length) return;
+  if(t==='b') eLoadB++; else eLoadA++;
+  const color=t==='b'?'var(--yw)':'var(--gn)';
+  const sp=makeSpinner(color); sp.classList.add('eph-loading');
+  const row=document.getElementById(t==='b'?'ebRow':'eaRow');
+  row.insertBefore(sp, document.getElementById(t==='b'?'ebAdd':'eaAdd'));
+  updEUI(t);
+  resizeImg(files[idx], b64=>{
+    (t==='b'?eBefore:eAfter).push(b64);
+    if(t==='b') eLoadB--; else eLoadA--;
+    sp.remove(); rebuildEThumbs(t);
+    processEPhQueue(files, idx+1, t);
+  }, e=>{
+    if(t==='b') eLoadB--; else eLoadA--;
+    sp.remove(); updEUI(t); toast('画像変換失敗: '+e.message,'ng');
+    processEPhQueue(files, idx+1, t);
+  });
 }
 
 function rebuildEThumbs(t) {
@@ -1254,6 +1274,7 @@ async function doSave(mode) {
   document.getElementById('eComp').disabled=true;
   document.getElementById('eSaveTxt').innerHTML=isSave?'<span class="spin"></span> 保存中...':'&#128190; 保存する';
   document.getElementById('eCompTxt').innerHTML=isSave?'&#9989; 完了にする':'<span class="spin"></span> 保存中...';
+  setEditPhotoInputsDisabled(true); // 保存中に追加された写真が送信されず消えるのを防ぐ
 
   try {
     if(eLoadB>0||eLoadA>0){ toast('写真の処理中です。少し待ってください'); return; }
@@ -1318,7 +1339,12 @@ async function doSave(mode) {
     document.getElementById('eComp').disabled=false;
     document.getElementById('eSaveTxt').innerHTML='&#128190; 保存する';
     document.getElementById('eCompTxt').innerHTML='&#9989; 完了にする';
+    setEditPhotoInputsDisabled(false);
   }
+}
+
+function setEditPhotoInputsDisabled(disabled){
+  ['ebAdd','eaAdd','ebFile','eaFile'].forEach(id=>{ document.getElementById(id).disabled=disabled; });
 }
 
 // ============================================================
@@ -1335,9 +1361,9 @@ function printRep(){
   for(let i=0;i<mx;i++){
     const bS=bp[i], aS=ap[i];
     pr+=`<div class="pg2">`+
-      (bS?`<div class="pb"><div class="pbl b">BEFORE${mx>1?' '+(i+1):''}</div><img src="${bS}"></div>`
+      (bS?`<div class="pb"><div class="pbl b">BEFORE${mx>1?' '+(i+1):''}</div><img src="${esc(bS)}"></div>`
          :`<div class="pb np"><div class="pbl b">BEFORE</div><div class="npt">写真なし</div></div>`)+
-      (aS?`<div class="pb"><div class="pbl a">AFTER${mx>1?' '+(i+1):''}</div><img src="${aS}"></div>`
+      (aS?`<div class="pb"><div class="pbl a">AFTER${mx>1?' '+(i+1):''}</div><img src="${esc(aS)}"></div>`
          :`<div class="pb np"><div class="pbl a">AFTER</div><div class="npt">写真なし</div></div>`)+
       `</div>`;
   }
@@ -1426,12 +1452,21 @@ function cfmResolve(v){
 // PIN
 // ============================================================
 let _pin='';
+// 連続失敗によるブルートフォース対策（5回失敗で30秒ロック・クライアント内メモリのみ、リロードで解除）
+let _pinFails=0, _pinLockUntil=0;
 
-function openPin(){ _pin=''; updDots(); document.getElementById('pErr').style.display='none'; document.getElementById('pinOv').classList.add('on'); }
+function openPin(){
+  const remain=_pinLockUntil-Date.now();
+  if(remain>0){ toast('試行回数が多すぎます。'+Math.ceil(remain/1000)+'秒後にお試しください','ng'); return; }
+  _pin=''; updDots(); document.getElementById('pErr').style.display='none'; document.getElementById('pinOv').classList.add('on');
+}
 
 
 function closePin(){ closeMod('pinOv'); _pin=''; updDots(); }
-function pk(d){ if(_pin.length>=4)return; _pin+=d; updDots(); if(_pin.length===4)setTimeout(checkPin,120); }
+function pk(d){
+  if(Date.now()<_pinLockUntil) return;
+  if(_pin.length>=4)return; _pin+=d; updDots(); if(_pin.length===4)setTimeout(checkPin,120);
+}
 function pDel(){ _pin=_pin.slice(0,-1); updDots(); document.getElementById('pErr').style.display='none'; }
 function pClear(){ _pin=''; updDots(); document.getElementById('pErr').style.display='none'; }
 function updDots(){ for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);d.classList.toggle('on',i<_pin.length);d.classList.remove('er');} }
@@ -1440,13 +1475,23 @@ async function checkPin(){
   const h=await sha256(_pin);
   const st=localStorage.getItem(PKEY)||'';
   const df=await sha256('3150');
+  const pErr=document.getElementById('pErr');
   if(st?h===st:h===df){
+    _pinFails=0;
     closeMod('pinOv'); document.getElementById('setOv').classList.add('on');
     _pin=''; updDots();
   } else {
-    document.getElementById('pErr').style.display='block';
+    _pinFails++;
+    if(_pinFails>=5){
+      _pinLockUntil=Date.now()+30000;
+      _pinFails=0;
+      pErr.textContent='試行回数が多すぎます。30秒後にお試しください';
+    } else {
+      pErr.textContent='パスワードが違います';
+    }
+    pErr.style.display='block';
     for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.add('er');
-    setTimeout(()=>{ _pin=''; updDots(); document.getElementById('pErr').style.display='none'; },800);
+    setTimeout(()=>{ _pin=''; updDots(); pErr.style.display='none'; },800);
   }
 }
 
@@ -1536,6 +1581,8 @@ async function gas(action){
 }
 
 // 詳細・編集を開く時に、その1件の全写真を取得してマージ（一覧は軽量化済み）
+// 同一idへの同時呼び出しは1回の通信にまとめる（カードの連打などによる多重フェッチ防止）
+const _fullFetchInflight = {};
 async function ensureFullPhotos(r){
   if(!r||r._full) return r;           // 取得済みならスキップ
   if(!r.id) { r._full=true; return r; }
@@ -1545,16 +1592,27 @@ async function ensureFullPhotos(r){
     r._full=true;
     return r;
   }
-  try{
-    const res=await gas('getReportFull&id='+encodeURIComponent(r.id));
-    if(res.status==='ok'&&res.report){
-      const photos={};
-      [...BK,...AK].forEach(k=>{ photos[k]=res.report[k]||''; });
-      Object.assign(r, photos);
-      photoCache[r.id]=photos; // キャッシュ保存
-      r._full=true;
-    }
-  }catch(e){ console.error('getReportFull失敗:',e); }
+  if(!_fullFetchInflight[r.id]){
+    _fullFetchInflight[r.id] = (async()=>{
+      try{
+        const res=await gas('getReportFull&id='+encodeURIComponent(r.id));
+        if(res.status==='ok'&&res.report){
+          const photos={};
+          [...BK,...AK].forEach(k=>{ photos[k]=res.report[k]||''; });
+          photoCache[r.id]=photos; // キャッシュ保存
+        } else {
+          toast('写真の取得に失敗しました。もう一度お試しください','ng');
+        }
+      }catch(e){
+        console.error('getReportFull失敗:',e);
+        toast('写真の取得に失敗しました。もう一度お試しください','ng');
+      } finally {
+        delete _fullFetchInflight[r.id];
+      }
+    })();
+  }
+  await _fullFetchInflight[r.id];
+  if(photoCache[r.id]){ Object.assign(r, photoCache[r.id]); r._full=true; }
   return r;
 }
 
